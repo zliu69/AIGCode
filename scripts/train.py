@@ -24,8 +24,8 @@ from aigcode.config import (
 )
 from aigcode.data import build_train_dataloader
 from aigcode.eval import build_evaluators
-from aigcode.exceptions import AIGCcodeCliError, AIGCcodeConfigurationError
-from aigcode.model import AIGCcode
+from aigcode.exceptions import AIGCodeCliError, AIGCodeConfigurationError
+from aigcode.model import AIGCode
 from aigcode.optim import BoltOnWarmupScheduler, build_optimizer, build_scheduler
 from aigcode.torch_util import (
     barrier,
@@ -51,7 +51,7 @@ log = logging.getLogger("train")
 def main(cfg: TrainConfig) -> None:
     # Ensure run name set.
     if cfg.run_name is None:
-        raise AIGCcodeConfigurationError("--run_name is required")
+        raise AIGCodeConfigurationError("--run_name is required")
     log_extra_field("run_name", cfg.run_name)
 
     # Sanity check
@@ -93,7 +93,7 @@ def main(cfg: TrainConfig) -> None:
             # Save config.
             save_path = Path(cfg.save_folder) / "config.yaml"
             if save_path.is_file() and not cfg.save_overwrite:
-                raise AIGCcodeConfigurationError(f"{save_path} already exists, use --save_overwrite to overwrite")
+                raise AIGCodeConfigurationError(f"{save_path} already exists, use --save_overwrite to overwrite")
             else:
                 log.info(f"Saving config to {save_path}")
                 save_path.parent.mkdir(exist_ok=True, parents=True)
@@ -131,7 +131,7 @@ def main(cfg: TrainConfig) -> None:
 
     # Initialize the model.
     log.info("Building model...")
-    aigcode_model = AIGCcode(cfg.model)
+    aigcode_model = AIGCode(cfg.model)
     log.info(f"Total number of parameters: {aigcode_model.num_params():,d}")
     log.info(f"Number of non-embedding parameters: {aigcode_model.num_params(include_embedding=False):,d}")
     log.info(f"Peak GPU Memory (MB) before {cfg.distributed_strategy}: {int(peak_gpu_memory() or 0)}")
@@ -143,10 +143,10 @@ def main(cfg: TrainConfig) -> None:
         assert cfg.ddp is not None, "DistributedStrategy ddp needs cfg.ddp to be set!"
 
         if cfg.model.init_device != "cuda":
-            raise AIGCcodeConfigurationError("DDP does not work with init_device set to anything other than `cuda`.")
+            raise AIGCodeConfigurationError("DDP does not work with init_device set to anything other than `cuda`.")
 
         if cfg.ddp.find_unused_params is True and cfg.ddp.grad_sync_mode != DDPGradSyncMode.micro_batch:
-            raise AIGCcodeConfigurationError(
+            raise AIGCodeConfigurationError(
                 "`find_unused_params` is set to True. DDP needs to synchronize gradients for every micro-batch to avoid errors. Set `grad_sync_mode` to `micro_batch`."
             )
 
@@ -175,8 +175,8 @@ def main(cfg: TrainConfig) -> None:
         if cfg.fsdp.sharding_strategy in (ShardingStrategy.HYBRID_SHARD, ShardingStrategy._HYBRID_SHARD_ZERO2):
             if version.parse(torch.__version__) < version.parse("2.2.0"):
                 # Device mesh was not added to PyTorch until v2.2.0
-                raise AIGCcodeConfigurationError(
-                    "AIGCcode training does not correctly support hybrid sharding before torch 2.2.0"
+                raise AIGCodeConfigurationError(
+                    "AIGCode training does not correctly support hybrid sharding before torch 2.2.0"
                 )
 
             from torch.distributed.device_mesh import init_device_mesh
@@ -186,10 +186,10 @@ def main(cfg: TrainConfig) -> None:
             )
 
             if num_model_replicas <= 0:
-                raise AIGCcodeConfigurationError("fsdp.hybrid_sharding_num_model_replicas must be a positive integer")
+                raise AIGCodeConfigurationError("fsdp.hybrid_sharding_num_model_replicas must be a positive integer")
 
             if get_world_size() % num_model_replicas != 0:
-                raise AIGCcodeConfigurationError("fsdp.hybrid_sharding_num_model_replicas must divide world size")
+                raise AIGCodeConfigurationError("fsdp.hybrid_sharding_num_model_replicas must divide world size")
 
             device_mesh = init_device_mesh("cuda", (num_model_replicas, get_world_size() // num_model_replicas))
             hybrid_sharding_fsdp_kwargs["device_mesh"] = device_mesh
@@ -225,7 +225,7 @@ def main(cfg: TrainConfig) -> None:
     if cfg.save_data_indices:
         indices_file_path = Path(cfg.save_folder) / f"data-indices/rank{get_global_rank()}.tsv.gz"
         if indices_file_path.exists() and not cfg.save_overwrite:
-            raise AIGCcodeConfigurationError(f"{indices_file_path} already exists, use --save_overwrite to overwrite")
+            raise AIGCodeConfigurationError(f"{indices_file_path} already exists, use --save_overwrite to overwrite")
         indices_file_path.parent.mkdir(exist_ok=True, parents=True)
         indices_file = gzip.open(indices_file_path, "wt")
 
@@ -329,7 +329,7 @@ if __name__ == "__main__":
     try:
         yaml_path, args_list = sys.argv[1], sys.argv[2:]
     except IndexError:
-        raise AIGCcodeCliError(f"Usage: {sys.argv[0]} [CONFIG_PATH] [OPTIONS]")
+        raise AIGCodeCliError(f"Usage: {sys.argv[0]} [CONFIG_PATH] [OPTIONS]")
     print("loading TrainConfig.")
     print(yaml_path)
 

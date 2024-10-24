@@ -1,10 +1,10 @@
 from transformers import AutoTokenizer, PreTrainedTokenizerFast
 
-from hf_aigcode.configuration_aigcode import AIGCcodeConfig
+from hf_aigcode.configuration_aigcode import AIGCodeConfig
 
 
-class AIGCcodeTokenizerFast(PreTrainedTokenizerFast):
-    # Note: AIGCcode's tokenizer is already a wrapper around huggingface. This is potentially unnecessary.
+class AIGCodeTokenizerFast(PreTrainedTokenizerFast):
+    # Note: AIGCode's tokenizer is already a wrapper around huggingface. This is potentially unnecessary.
     pass
 
-AutoTokenizer.register(AIGCcodeConfig, fast_tokenizer_class=AIGCcodeTokenizerFast)
+AutoTokenizer.register(AIGCodeConfig, fast_tokenizer_class=AIGCodeTokenizerFast)

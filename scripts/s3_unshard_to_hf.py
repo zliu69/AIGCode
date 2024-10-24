@@ -4,14 +4,14 @@ format. Requires the AWS CLI to be installed and configured.
 
 Example usage for `aigcode_core`-style checkpoint (circa April 2024):
 python scripts/s3_unshard_to_hf.py \
-    --sharded_bucket s3://ai2-llm/checkpoints/AIGCcode-medium/mitchish7/step239000 \
-    --unsharded_bucket s3://ai2-llm/checkpoints/AIGCcode-medium/mitchish7/step239000-unsharded \
-    --hf_bucket s3://ai2-llm/checkpoints/AIGCcode-medium/mitchish7/step239000-huggingface \
+    --sharded_bucket s3://ai2-llm/checkpoints/AIGCode-medium/mitchish7/step239000 \
+    --unsharded_bucket s3://ai2-llm/checkpoints/AIGCode-medium/mitchish7/step239000-unsharded \
+    --hf_bucket s3://ai2-llm/checkpoints/AIGCode-medium/mitchish7/step239000-huggingface \
     --type aigcode_core \
     --tmp_dir /net/nfs.cirrascale/allennlp/davidw/tmp/unshard
 
-NOTE: For this to work, you need to install the `AIGCcode-core` repo as follows:
-- Clone https://github.com/allenai/AIGCcode-core
+NOTE: For this to work, you need to install the `AIGCode-core` repo as follows:
+- Clone https://github.com/allenai/AIGCode-core
 - Run `pip install -e .[all]`
 """
 
@@ -23,7 +23,7 @@ import subprocess
 
 def make_parser():
     parser = argparse.ArgumentParser(
-        description="Unshard S3 checkpoint and convert to HF format. Invoke this script from the root of the AIGCcode repo."
+        description="Unshard S3 checkpoint and convert to HF format. Invoke this script from the root of the AIGCode repo."
     )
     parser.add_argument("--sharded_bucket", help="S3 bucket with sharded checkpoint.", type=str)
     parser.add_argument(

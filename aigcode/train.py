@@ -39,8 +39,8 @@ from .config import (
 )
 from .data import IterableDataset
 from .eval import Evaluator
-from .exceptions import AIGCcodeConfigurationError
-from .model import AIGCcode
+from .exceptions import AIGCodeConfigurationError
+from .model import AIGCode
 from .optim import Optimizer, Scheduler
 from .torch_util import (
     barrier,
@@ -77,7 +77,7 @@ class SpeedMonitor:
         record: bool = True,
     ) -> None:
         self.global_total_tokens = global_total_tokens
-        # num_fwd_flops and num_bck_flops from the AIGCcode model computes flops per token
+        # num_fwd_flops and num_bck_flops from the AIGCode model computes flops per token
         # converting to GFLOPs here prevents numerical issues while logging
         self.total_training_Gflops = (num_fwd_flops + num_bck_flops) * global_total_tokens / 1e9
 
@@ -139,7 +139,7 @@ def cross_entropy_loss(
 @dataclass
 class Trainer:
     cfg: TrainConfig
-    model: AIGCcode
+    model: AIGCode
     dist_model: Union[DDP, FSDP]
     optim: Optimizer
     scheduler: Scheduler
@@ -455,7 +455,7 @@ class Trainer:
                 upload_to=remote_checkpoint_dir,
             )
         except FileExistsError:
-            raise AIGCcodeConfigurationError(
+            raise AIGCodeConfigurationError(
                 f"Checkpoint for step {self.global_step} already exists, use --save-overwrite to overwrite it"
             )
 

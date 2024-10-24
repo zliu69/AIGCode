@@ -9,14 +9,14 @@ from transformers.modeling_outputs import CausalLMOutputWithPast
 from transformers.models.auto import AutoModelForCausalLM
 
 from aigcode.config import ModelConfig
-from aigcode.model import AIGCcode
+from aigcode.model import AIGCode
 
-from .configuration_aigcodexmoe import AIGCcodeXMoEConfig
+from .configuration_aigcodexmoe import AIGCodeXMoEConfig
 
 log = logging.getLogger(__name__)
 
 
-def create_model_config_from_pretrained_config(config: AIGCcodeXMoEConfig):
+def create_model_config_from_pretrained_config(config: AIGCodeXMoEConfig):
     """
     Utility function
     """
@@ -29,23 +29,23 @@ def create_model_config_from_pretrained_config(config: AIGCcodeXMoEConfig):
     return model_config
 
 
-class AIGCcodeXMoEForCausalLM(PreTrainedModel):
+class AIGCodeXMoEForCausalLM(PreTrainedModel):
     """
     Extremely barebones HF model wrapper.
     """
 
-    config_class = AIGCcodeXMoEConfig
+    config_class = AIGCodeXMoEConfig
     base_model_prefix = "model"
-    _no_split_modules = ["AIGCcodeXMoEBlock"]
+    _no_split_modules = ["AIGCodeXMoEBlock"]
 
-    def __init__(self, config: AIGCcodeXMoEConfig, model: Optional[AIGCcode] = None, init_params: bool = False):
+    def __init__(self, config: AIGCodeXMoEConfig, model: Optional[AIGCode] = None, init_params: bool = False):
         super().__init__(config)
 
         if not model:
             model_config = create_model_config_from_pretrained_config(config)
             # Initialize model (always on CPU to start with so we don't run out of GPU memory).
             model_config.init_device = "cpu"
-            self.model = AIGCcode(model_config, init_params=init_params)
+            self.model = AIGCode(model_config, init_params=init_params)
         else:
             self.model = model
 
@@ -69,7 +69,7 @@ class AIGCcodeXMoEForCausalLM(PreTrainedModel):
             use_cache = self.config.use_cache
 
         if output_attentions:
-            raise ValueError("output_attentions is not yet supported in AIGCcodeXMoE")
+            raise ValueError("output_attentions is not yet supported in AIGCodeXMoE")
 
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
@@ -196,7 +196,7 @@ class AIGCcodeXMoEForCausalLM(PreTrainedModel):
         Note:
             This method differs from the base class implementation by resizing the `embedding_size` attribute of the
             model configuration instead of the `vocab_size`. It also includes a warning if the resized `embedding_size`
-            is less than the `vocab_size`. In AIGCcode, `embedding_size` refers to the dimensionality of the model's token
+            is less than the `vocab_size`. In AIGCode, `embedding_size` refers to the dimensionality of the model's token
             embeddings, while `vocab_size` refers to the number of unique tokens in the vocabulary.
         """
         model_embeds = self._resize_token_embeddings(new_num_tokens, pad_to_multiple_of)
@@ -221,4 +221,4 @@ class AIGCcodeXMoEForCausalLM(PreTrainedModel):
 
         return model_embeds
 
-AutoModelForCausalLM.register(AIGCcodeXMoEConfig, AIGCcodeXMoEForCausalLM)
+AutoModelForCausalLM.register(AIGCodeXMoEConfig, AIGCodeXMoEForCausalLM)

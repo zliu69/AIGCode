@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "ai2-aigcode"
 dynamic = ["version"]
 readme = "README.md"
-description = "Open Language Model (AIGCcode)"
+description = "Open Language Model (AIGCode)"
 authors = [
     { name = "Allen Institute for Artificial Intelligence", email = "aigcode@allenai.org" }
 ]
@@ -54,8 +54,8 @@ all = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/allenai/AIGCcode"
-Repository = "https://github.com/allenai/AIGCcode"
+Homepage = "https://github.com/allenai/AIGCode"
+Repository = "https://github.com/allenai/AIGCode"
 
 [tool.setuptools]
 include-package-data = true

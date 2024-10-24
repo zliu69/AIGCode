@@ -7,7 +7,7 @@ import random
 
 from ..aliases import PathOrStr
 from ..config import DataConfig, TrainConfig
-from ..exceptions import AIGCcodeConfigurationError
+from ..exceptions import AIGCodeConfigurationError
 from ..torch_util import barrier, get_global_rank, get_world_size, is_distributed
 from .collator import DataCollator
 from .iterable_dataset import IterableDataset
@@ -26,7 +26,7 @@ def build_memmap_dataset(
     label_mask_paths = []
     if data_config.paths:
         if data_config.datasets:
-            raise AIGCcodeConfigurationError("DataConfig.paths is mutually exclusive with DataConfig.datasets")
+            raise AIGCodeConfigurationError("DataConfig.paths is mutually exclusive with DataConfig.datasets")
         paths = data_config.paths
         for path in paths:
             metadata.append({"path": str(path)})
@@ -86,7 +86,7 @@ def build_memmap_dataset(
             paths.extend(label_paths)
             metadata.extend([{"label": label}] * len(label_paths))
     else:
-        raise AIGCcodeConfigurationError("One of DataConfig.paths/DataConfig.data_dir or DataConfig.datasets is required")
+        raise AIGCodeConfigurationError("One of DataConfig.paths/DataConfig.data_dir or DataConfig.datasets is required")
 
     print("metadata len:{}".format(len(metadata)))
     print("metadata_paths_stats: {}".format(metadata_paths_stats))
@@ -159,7 +159,7 @@ def build_train_dataloader(
     work_dir = Path(train_config.save_folder) / "train_data"
     if get_global_rank() == 0:
         if work_dir.is_dir() and not train_config.save_overwrite:
-            raise AIGCcodeConfigurationError(
+            raise AIGCodeConfigurationError(
                 "train data working directory already exists, use --save_overwrite to overwrite"
             )
         else:

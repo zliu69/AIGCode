@@ -49,7 +49,7 @@ from aigcode import util
 
 from .aliases import PathOrStr
 from .config import BaseConfig, ShardedCheckpointerType, TrainConfig
-from .exceptions import AIGCcodeCheckpointError
+from .exceptions import AIGCodeCheckpointError
 from .optim import Optimizer, fix_optim_state_dict
 from .safetensors_util import safetensors_file_to_state_dict
 from .torch_util import (
@@ -394,7 +394,7 @@ class RemoteFileSystemWriter(dist_cp.FileSystemWriter):
                         # NOTE: we might get an error here that can't be pickled, which causes a different failure
                         # later when PyTorch tries to reduce that error across ranks. So here we just make
                         # sure we're raising a simple error type that can be pickled.
-                        raise AIGCcodeCheckpointError(f"Original error:\n{traceback.format_exc()}")
+                        raise AIGCodeCheckpointError(f"Original error:\n{traceback.format_exc()}")
         return fut
 
     def finish(self, metadata: Metadata, results: List[List[WriteResult]]) -> None:
@@ -457,7 +457,7 @@ class RemoteFileSystemReader(dist_cp.StorageReader):
                     # NOTE: we might get an error here that can't be pickled, which causes a different failure
                     # later when PyTorch tries to reduce that error across ranks. So here we just make
                     # sure we're raising a simple error type that can be pickled.
-                    raise AIGCcodeCheckpointError(f"Original error:\n{traceback.format_exc()}")
+                    raise AIGCodeCheckpointError(f"Original error:\n{traceback.format_exc()}")
 
         # Modified from `FileSystemReader.read_data()`
         for read_item, content in read_item_content_results:

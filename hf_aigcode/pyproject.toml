@@ -1,7 +1,7 @@
 [project]
 name = "hf_aigcode"
 version = "0.0.1"
-description = "Lightweight HF-AIGCcode"
+description = "Lightweight HF-AIGCode"
 authors = [
     {name = "Akshita Bhagia", email = "akshitab@allenai.org" }
 ]

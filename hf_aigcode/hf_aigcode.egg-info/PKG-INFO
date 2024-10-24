@@ -1,7 +1,7 @@
 Metadata-Version: 2.1
 Name: hf_aigcode
 Version: 0.0.1
-Summary: Lightweight HF-AIGCcode
+Summary: Lightweight HF-AIGCode
 Author-email: Akshita Bhagia <akshitab@allenai.org>
 License: Apache-2.0
 Project-URL: Homepage, https://github.com/allenai/llm

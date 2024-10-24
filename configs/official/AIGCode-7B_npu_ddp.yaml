@@ -1,4 +1,4 @@
-run_name: AIGCcode-7B
+run_name: AIGCode-7B
 seed: 6198
 dry_run: false
 gpu_type: ascend

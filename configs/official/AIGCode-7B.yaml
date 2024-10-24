@@ -1,11 +1,11 @@
-run_name: AIGCcode-7B
+run_name: AIGCode-7B
 seed: 6198
 dry_run: false
 
 wandb:
   name: ${run_name}
   project: aigcode-medium
-  group: AIGCcode-7B
+  group: AIGCode-7B
 
 model:
   d_model: 4096

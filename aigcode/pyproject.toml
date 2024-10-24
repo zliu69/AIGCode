@@ -1,7 +1,7 @@
 [project]
 name = "aigcode"
 version = "0.0.1"
-description = "Lightweight AIGCcode"
+description = "Lightweight AIGCode"
 authors = [
     {name = "Akshita Bhagia", email = "akshitab@allenai.org" }
 ]

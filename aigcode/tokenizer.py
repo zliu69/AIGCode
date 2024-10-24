@@ -8,7 +8,7 @@ from tokenizers import Tokenizer as BaseTokenizer
 
 from .aliases import PathOrStr
 from .config import ModelConfig, TokenizerConfig, TrainConfig, TruncationDirection
-from .exceptions import AIGCcodeConfigurationError
+from .exceptions import AIGCodeConfigurationError
 
 __all__ = ["Tokenizer"]
 
@@ -73,7 +73,7 @@ class Tokenizer:
             print("model_config.vocab_size: {}\n".format(config.model.vocab_size))
             print("tokenizer.vocab_size: {}\n".format(tokenizer.vocab_size))
             
-            raise AIGCcodeConfigurationError("vocab size mismatch between config and tokenizer")
+            raise AIGCodeConfigurationError("vocab size mismatch between config and tokenizer")
         return tokenizer
 
     @classmethod
@@ -131,7 +131,7 @@ class Tokenizer:
         if model_config.vocab_size != tokenizer.vocab_size:
             print("model_config.vocab_size: {}\n".format(config.model.vocab_size))
             print("tokenizer.vocab_size: {}\n".format(tokenizer.vocab_size))
-            raise AIGCcodeConfigurationError("vocab size mismatch between config and tokenizer")
+            raise AIGCodeConfigurationError("vocab size mismatch between config and tokenizer")
         return tokenizer
 
     def add_special_tokens(self, input_ids: List[int]) -> List[int]:

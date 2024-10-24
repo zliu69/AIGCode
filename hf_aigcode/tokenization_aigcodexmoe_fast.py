@@ -1,9 +1,9 @@
 from transformers import AutoTokenizer, PreTrainedTokenizerFast
 
-from .configuration_aigcodexmoe import AIGCcodeXMoEConfig
+from .configuration_aigcodexmoe import AIGCodeXMoEConfig
 
 # to be done
-class AIGCcodeXMoETokenizerFast(PreTrainedTokenizerFast):
-    # Note: AIGCcode's tokenizer is already a wrapper around huggingface. This is potentially unnecessary.
+class AIGCodeXMoETokenizerFast(PreTrainedTokenizerFast):
+    # Note: AIGCode's tokenizer is already a wrapper around huggingface. This is potentially unnecessary.
     pass
 

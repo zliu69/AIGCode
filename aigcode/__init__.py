@@ -12,4 +12,4 @@ def check_install(cuda: bool = False):
         assert torch.cuda.is_available(), "CUDA is not available!"
         print("CUDA available")
 
-    print(f"AIGCcode v{VERSION} installed")
+    print(f"AIGCode v{VERSION} installed")
