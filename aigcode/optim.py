@@ -640,10 +640,6 @@ def get_param_groups(cfg: TrainConfig, model: nn.Module) -> List[Dict[str, Any]]
             "initial_max_grad_norm_ratio":  None if cfg.max_grad_norm else cfg.max_grad_norm_ratio,
             "lr": cfg.optimizer.learning_rate, 
             "initial_lr": cfg.optimizer.learning_rate, 
-            # "max_grad_norm": cfg.max_grad_norm ,
-            # "max_grad_norm_ratio": cfg.max_grad_norm_ratio,
-            # "initial_max_grad_norm": cfg.max_grad_norm,
-            # "initial_max_grad_norm_ratio": cfg.max_grad_norm_ratio,
                 
         }
 
@@ -706,7 +702,6 @@ def get_param_groups(cfg: TrainConfig, model: nn.Module) -> List[Dict[str, Any]]
         gate_sorted = sorted(list(gate_params))
         print("decay_sorted: {}".format(decay_sorted))
         print("no_decay_sorted: {}".format(no_decay_sorted))
-        # print("share_layer_params_sorted: {}".format(share_layer_params_sorted))
         print("expert_sorted: {}".format(expert_sorted))
         print("gate_sorted: {}".format(gate_sorted))
 

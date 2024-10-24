@@ -6,11 +6,11 @@ gpu_type: ascend
 # wandb:
 #   name: ${run_name}
 #   project: olmo-small
-wandb:
- entity: liuzimo22
- name: ${run_name}
- project: aigcode_pretrain_7B
- group: aigcode-7B_v1.0
+# wandb:
+#  entity: liuzimo22
+#  name: ${run_name}
+#  project: aigcode_pretrain_7B
+#  group: aigcode-7B_v1.0
 
 model:
   d_model: 2048
@@ -127,7 +127,7 @@ load_path: null
 # max_duration: 739_328  # 3.1T tokens
 max_duration: 40000
 global_train_batch_size: 2048
-device_train_microbatch_size: 4
+device_train_microbatch_size: 8
 # global_train_batch_size: 64
 # device_train_microbatch_size: 2
 # activation_checkpointing: one_in_two

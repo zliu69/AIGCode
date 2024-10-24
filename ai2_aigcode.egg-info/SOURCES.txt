@@ -23,8 +23,6 @@ aigcode/top1gate.py
 aigcode/top2gate.py
 aigcode/torch_util.py
 aigcode/train.py
-aigcode/train_check.py
-aigcode/train_eval.py
 aigcode/util.py
 aigcode/version.py
 aigcode/data/__init__.py
