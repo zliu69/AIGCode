@@ -698,6 +698,7 @@ class FullCheckpointer(Checkpointer):
                     for module_name, module in dist_model.named_modules():
                         if not isinstance(module, FSDP):
                             continue
+                        print("dist model modules: {}\n".format(module_name))
                         for param in module.params:
                             param.fill_(torch.nan)
 
@@ -709,7 +710,7 @@ class FullCheckpointer(Checkpointer):
                         state_dict_to_load,
                         og_keys_to_new,
                     ) = dist_model._fsdp_wrapped_module._make_state_dict_compatible(state_dict_to_load)
-
+                    print("state_dict_to_load: {}\n".format(state_dict_to_load))
                     for module_name, module in dist_model.named_modules():
                         if not isinstance(module, FSDP):
                             continue

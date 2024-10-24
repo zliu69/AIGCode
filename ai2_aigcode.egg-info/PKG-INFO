@@ -212,7 +212,6 @@ Description-Content-Type: text/markdown
 License-File: LICENSE
 Requires-Dist: numpy
 Requires-Dist: torch<2.3,>=2.1
-Requires-Dist: ai2-aigcode-core==0.1.0
 Requires-Dist: omegaconf
 Requires-Dist: rich
 Requires-Dist: boto3

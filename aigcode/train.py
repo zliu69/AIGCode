@@ -562,7 +562,9 @@ class Trainer:
     ):
         # Zero-gradients to avoid gathering them.
         self.optim.zero_grad(set_to_none=True)
+        print("start init ckpter")
         checkpointer = FullCheckpointer(self.cfg)
+        print("start init trainer_state")
         trainer_state = checkpointer.restore_checkpoint(
             load_path,
             self.dist_model,
