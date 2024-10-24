@@ -1,0 +1,165 @@
+run_name: AIGCcode-1B
+seed: 6198
+dry_run: false
+gpu_type: ascend
+# wandb:
+#   name: ${run_name}
+#   project: aigcode-small
+
+model:
+  d_model: 2048
+  n_heads: 16
+  n_layers: 16
+  mlp_ratio: 8
+  weight_tying: true
+  alibi: false
+  rope: true
+  flash_attention: false  # not available on AMD
+  attention_dropout: 0.0
+  attention_layer_norm: false
+  multi_query_attention: false
+  include_bias: false
+  block_type: sequential
+  layer_norm_type: default
+  layer_norm_with_affine: false
+  bias_for_layer_norm: false
+  attention_layer_norm_with_affine: false
+  activation_type: swiglu
+  residual_dropout: 0.0
+  embedding_dropout: 0.0
+  max_sequence_length: 2048
+  vocab_size: 50280
+  embedding_size: 50304
+  eos_token_id: 0
+  pad_token_id: 1
+  init_device: meta
+  init_fn: mitchell
+
+distributed_strategy: fsdp
+compile: null  # causes instability on AMD GPUs
+
+optimizer:
+  name: adamw
+  learning_rate: 4.0e-4
+  weight_decay: 0.1
+  betas:
+  - 0.9
+  - 0.95
+  metrics_log_interval: 10
+
+scheduler:
+  name: cosine_with_warmup
+  t_warmup: 2000
+  alpha_f: 0.1
+
+tokenizer:
+  identifier: tokenizers/allenai_eleuther-ai-gpt-neox-20b-pii-special.json
+  truncate_direction: right
+
+save_folder: ${path.choose:${oc.env:SCRATCH_DIR,no_exist}/checkpoints,/results}/${oc.env:SLURM_JOB_ID,${run_name}}
+save_overwrite: false
+# Sharded checkpoints (best for restarts)
+save_interval: 1000
+save_num_checkpoints_to_keep: 9
+# Unsharded checkpoints (for final storage)
+save_interval_unsharded: 10000
+save_num_unsharded_checkpoints_to_keep: -1
+
+load_path: null
+
+max_duration: 739_328  # 3.1T tokens
+global_train_batch_size: 2048
+device_train_microbatch_size: 8
+# global_train_batch_size: 512
+# device_train_microbatch_size: 2
+
+
+precision: amp_bf16
+# precision: fp32
+
+fsdp:
+  wrapping_strategy: null
+  precision: mixed
+
+max_grad_norm: 1.0
+max_grad_norm_ratio: null
+
+speed_monitor:
+  window_size: 20
+
+eval_interval: 1000
+eval_subset_num_batches: -1
+device_eval_batch_size: ${device_train_microbatch_size}
+evaluators:
+  - label: v3-small-ppl-validation
+    data:
+      num_workers: 0
+      drop_last: true
+      datasets:
+        v3-small-c4_en-validation:
+          - /sharedata/aigcode-val/aigcode-data.org/eval-data/perplexity/v3_small_gptneox20b/c4_en/val/new-part-0-00000.npy
+        v3-small-dolma_books-validation:
+          - /sharedata/aigcode-val/aigcode-data.org/eval-data/perplexity/v3_small_gptneox20b/dolma_books/val/new-part-0-00000.npy
+        v3-small-dolma_common-crawl-validation:
+          - /sharedata/aigcode-val/aigcode-data.org/eval-data/perplexity/v3_small_gptneox20b/dolma_common-crawl/val/new-part-0-00000.npy
+        v3-small-dolma_pes2o-validation:
+          - /sharedata/aigcode-val/aigcode-data.org/eval-data/perplexity/v3_small_gptneox20b/dolma_pes2o/val/new-part-0-00000.npy
+        v3-small-dolma_reddit-validation:
+          - /sharedata/aigcode-val/aigcode-data.org/eval-data/perplexity/v3_small_gptneox20b/dolma_reddit/val/new-part-0-00000.npy
+        v3-small-dolma_stack-validation:
+          - /sharedata/aigcode-val/aigcode-data.org/eval-data/perplexity/v3_small_gptneox20b/dolma_stack/val/new-part-0-00000.npy
+        v3-small-dolma_wiki-validation:
+          - /sharedata/aigcode-val/aigcode-data.org/eval-data/perplexity/v3_small_gptneox20b/dolma_wiki/val/new-part-0-00000.npy
+        v3-small-ice-validation:
+          - /sharedata/aigcode-val/aigcode-data.org/eval-data/perplexity/v3_small_gptneox20b/ice/val/new-part-0-00000.npy
+        v3-small-m2d2_s2orc-validation:
+          - /sharedata/aigcode-val/aigcode-data.org/eval-data/perplexity/v3_small_gptneox20b/m2d2_s2orc/val/new-part-0-00000.npy
+        v3-small-pile-validation:
+          - /sharedata/aigcode-val/aigcode-data.org/eval-data/perplexity/v3_small_gptneox20b/pile/val/new-part-0-00000.npy
+        v3-small-wikitext_103-validation:
+          - /sharedata/aigcode-val/aigcode-data.org/eval-data/perplexity/v3_small_gptneox20b/wikitext_103/val/new-part-0-00000.npy
+
+  - label: v2-small-ppl-validation
+    data:
+      num_workers: 0
+      drop_last: true
+      datasets:
+        v2-small-4chan-validation:
+          - /sharedata/aigcode-val/aigcode-data.org/eval-data/perplexity/v2_small_gptneox20b/4chan/new-val.npy
+        v2-small-c4_100_domains-validation:
+          - /sharedata/aigcode-val/aigcode-data.org/eval-data/perplexity/v2_small_gptneox20b/c4_100_domains/new-val.npy
+        v2-small-c4_en-validation:
+          - /sharedata/aigcode-val/aigcode-data.org/eval-data/perplexity/v2_small_gptneox20b/c4_en/new-val.npy
+        v2-small-gab-validation:
+          - /sharedata/aigcode-val/aigcode-data.org/eval-data/perplexity/v2_small_gptneox20b/gab/new-val.npy
+        v2-small-ice-validation:
+          - /sharedata/aigcode-val/aigcode-data.org/eval-data/perplexity/v2_small_gptneox20b/ice/new-val.npy
+        v2-small-m2d2_s2orc-validation:
+          - /sharedata/aigcode-val/aigcode-data.org/eval-data/perplexity/v2_small_gptneox20b/m2d2_s2orc/new-val.npy
+        v2-small-m2d2_wiki-validation:
+          - /sharedata/aigcode-val/aigcode-data.org/eval-data/perplexity/v2_small_gptneox20b/m2d2_wiki/new-val.npy
+        v2-small-manosphere-validation:
+          - /sharedata/aigcode-val/aigcode-data.org/eval-data/perplexity/v2_small_gptneox20b/manosphere/new-val.npy
+        v2-small-mc4_en-validation:
+          - /sharedata/aigcode-val/aigcode-data.org/eval-data/perplexity/v2_small_gptneox20b/mc4_en/new-val.npy
+        v2-small-pile-validation:
+          - /sharedata/aigcode-val/aigcode-data.org/eval-data/perplexity/v2_small_gptneox20b/pile/new-val.npy
+        v2-small-ptb-validation:
+          - /sharedata/aigcode-val/aigcode-data.org/eval-data/perplexity/v2_small_gptneox20b/ptb/new-val.npy
+        v2-small-twitterAEE-validation:
+          - /sharedata/aigcode-val/aigcode-data.org/eval-data/perplexity/v2_small_gptneox20b/twitterAEE/new-val.npy
+        v2-small-wikitext_103-validation:
+          - /sharedata/aigcode-val/aigcode-data.org/eval-data/perplexity/v2_small_gptneox20b/wikitext_103/new-val.npy
+
+data:
+  pad_direction: right
+  num_workers: 0
+  drop_last: true
+  pin_memory: true
+  prefetch_factor: 16
+  persistent_workers: true
+  timeout: 0
+  paths:
+    - /sharedata/pretrain/npy/c4_uint16/0_c4-0000_00000.npy
+    - /sharedata/pretrain/npy/dm_math_uint16/0_dm-math_00000.npy
+    - /sharedata/pretrain/npy/c4_uint16/0_c4-0000_00001.npy

@@ -1,0 +1,4 @@
+dt=`date +%Y%m%d.%H%M`
+logfile=./logs/${1}.7.${dt}.log
+`nohup sh run_dist_7_npu.sh ${1} > ${logfile} 2>&1 &`
+# ln -sf  ~/qiuwu/aigcode/${logfile} ./${1}.log

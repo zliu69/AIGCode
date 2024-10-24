@@ -1,0 +1,6 @@
+pyproject.toml
+hf_aigcode.egg-info/PKG-INFO
+hf_aigcode.egg-info/SOURCES.txt
+hf_aigcode.egg-info/dependency_links.txt
+hf_aigcode.egg-info/requires.txt
+hf_aigcode.egg-info/top_level.txt

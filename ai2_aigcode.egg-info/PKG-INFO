@@ -1,0 +1,464 @@
+Metadata-Version: 2.1
+Name: ai2-aigcode
+Version: 0.3.1
+Summary: Open Language Model (AIGCcode)
+Author-email: Allen Institute for Artificial Intelligence <aigcode@allenai.org>
+License:                                  Apache License
+                                   Version 2.0, January 2004
+                                https://www.apache.org/licenses/
+        
+           TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+        
+           1. Definitions.
+        
+              "License" shall mean the terms and conditions for use, reproduction,
+              and distribution as defined by Sections 1 through 9 of this document.
+        
+              "Licensor" shall mean the copyright owner or entity authorized by
+              the copyright owner that is granting the License.
+        
+              "Legal Entity" shall mean the union of the acting entity and all
+              other entities that control, are controlled by, or are under common
+              control with that entity. For the purposes of this definition,
+              "control" means (i) the power, direct or indirect, to cause the
+              direction or management of such entity, whether by contract or
+              otherwise, or (ii) ownership of fifty percent (50%) or more of the
+              outstanding shares, or (iii) beneficial ownership of such entity.
+        
+              "You" (or "Your") shall mean an individual or Legal Entity
+              exercising permissions granted by this License.
+        
+              "Source" form shall mean the preferred form for making modifications,
+              including but not limited to software source code, documentation
+              source, and configuration files.
+        
+              "Object" form shall mean any form resulting from mechanical
+              transformation or translation of a Source form, including but
+              not limited to compiled object code, generated documentation,
+              and conversions to other media types.
+        
+              "Work" shall mean the work of authorship, whether in Source or
+              Object form, made available under the License, as indicated by a
+              copyright notice that is included in or attached to the work
+              (an example is provided in the Appendix below).
+        
+              "Derivative Works" shall mean any work, whether in Source or Object
+              form, that is based on (or derived from) the Work and for which the
+              editorial revisions, annotations, elaborations, or other modifications
+              represent, as a whole, an original work of authorship. For the purposes
+              of this License, Derivative Works shall not include works that remain
+              separable from, or merely link (or bind by name) to the interfaces of,
+              the Work and Derivative Works thereof.
+        
+              "Contribution" shall mean any work of authorship, including
+              the original version of the Work and any modifications or additions
+              to that Work or Derivative Works thereof, that is intentionally
+              submitted to Licensor for inclusion in the Work by the copyright owner
+              or by an individual or Legal Entity authorized to submit on behalf of
+              the copyright owner. For the purposes of this definition, "submitted"
+              means any form of electronic, verbal, or written communication sent
+              to the Licensor or its representatives, including but not limited to
+              communication on electronic mailing lists, source code control systems,
+              and issue tracking systems that are managed by, or on behalf of, the
+              Licensor for the purpose of discussing and improving the Work, but
+              excluding communication that is conspicuously marked or otherwise
+              designated in writing by the copyright owner as "Not a Contribution."
+        
+              "Contributor" shall mean Licensor and any individual or Legal Entity
+              on behalf of whom a Contribution has been received by Licensor and
+              subsequently incorporated within the Work.
+        
+           2. Grant of Copyright License. Subject to the terms and conditions of
+              this License, each Contributor hereby grants to You a perpetual,
+              worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+              copyright license to reproduce, prepare Derivative Works of,
+              publicly display, publicly perform, sublicense, and distribute the
+              Work and such Derivative Works in Source or Object form.
+        
+           3. Grant of Patent License. Subject to the terms and conditions of
+              this License, each Contributor hereby grants to You a perpetual,
+              worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+              (except as stated in this section) patent license to make, have made,
+              use, offer to sell, sell, import, and otherwise transfer the Work,
+              where such license applies only to those patent claims licensable
+              by such Contributor that are necessarily infringed by their
+              Contribution(s) alone or by combination of their Contribution(s)
+              with the Work to which such Contribution(s) was submitted. If You
+              institute patent litigation against any entity (including a
+              cross-claim or counterclaim in a lawsuit) alleging that the Work
+              or a Contribution incorporated within the Work constitutes direct
+              or contributory patent infringement, then any patent licenses
+              granted to You under this License for that Work shall terminate
+              as of the date such litigation is filed.
+        
+           4. Redistribution. You may reproduce and distribute copies of the
+              Work or Derivative Works thereof in any medium, with or without
+              modifications, and in Source or Object form, provided that You
+              meet the following conditions:
+        
+              (a) You must give any other recipients of the Work or
+                  Derivative Works a copy of this License; and
+        
+              (b) You must cause any modified files to carry prominent notices
+                  stating that You changed the files; and
+        
+              (c) You must retain, in the Source form of any Derivative Works
+                  that You distribute, all copyright, patent, trademark, and
+                  attribution notices from the Source form of the Work,
+                  excluding those notices that do not pertain to any part of
+                  the Derivative Works; and
+        
+              (d) If the Work includes a "NOTICE" text file as part of its
+                  distribution, then any Derivative Works that You distribute must
+                  include a readable copy of the attribution notices contained
+                  within such NOTICE file, excluding those notices that do not
+                  pertain to any part of the Derivative Works, in at least one
+                  of the following places: within a NOTICE text file distributed
+                  as part of the Derivative Works; within the Source form or
+                  documentation, if provided along with the Derivative Works; or,
+                  within a display generated by the Derivative Works, if and
+                  wherever such third-party notices normally appear. The contents
+                  of the NOTICE file are for informational purposes only and
+                  do not modify the License. You may add Your own attribution
+                  notices within Derivative Works that You distribute, alongside
+                  or as an addendum to the NOTICE text from the Work, provided
+                  that such additional attribution notices cannot be construed
+                  as modifying the License.
+        
+              You may add Your own copyright statement to Your modifications and
+              may provide additional or different license terms and conditions
+              for use, reproduction, or distribution of Your modifications, or
+              for any such Derivative Works as a whole, provided Your use,
+              reproduction, and distribution of the Work otherwise complies with
+              the conditions stated in this License.
+        
+           5. Submission of Contributions. Unless You explicitly state otherwise,
+              any Contribution intentionally submitted for inclusion in the Work
+              by You to the Licensor shall be under the terms and conditions of
+              this License, without any additional terms or conditions.
+              Notwithstanding the above, nothing herein shall supersede or modify
+              the terms of any separate license agreement you may have executed
+              with Licensor regarding such Contributions.
+        
+           6. Trademarks. This License does not grant permission to use the trade
+              names, trademarks, service marks, or product names of the Licensor,
+              except as required for reasonable and customary use in describing the
+              origin of the Work and reproducing the content of the NOTICE file.
+        
+           7. Disclaimer of Warranty. Unless required by applicable law or
+              agreed to in writing, Licensor provides the Work (and each
+              Contributor provides its Contributions) on an "AS IS" BASIS,
+              WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+              implied, including, without limitation, any warranties or conditions
+              of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+              PARTICULAR PURPOSE. You are solely responsible for determining the
+              appropriateness of using or redistributing the Work and assume any
+              risks associated with Your exercise of permissions under this License.
+        
+           8. Limitation of Liability. In no event and under no legal theory,
+              whether in tort (including negligence), contract, or otherwise,
+              unless required by applicable law (such as deliberate and grossly
+              negligent acts) or agreed to in writing, shall any Contributor be
+              liable to You for damages, including any direct, indirect, special,
+              incidental, or consequential damages of any character arising as a
+              result of this License or out of the use or inability to use the
+              Work (including but not limited to damages for loss of goodwill,
+              work stoppage, computer failure or malfunction, or any and all
+              other commercial damages or losses), even if such Contributor
+              has been advised of the possibility of such damages.
+        
+           9. Accepting Warranty or Additional Liability. While redistributing
+              the Work or Derivative Works thereof, You may choose to offer,
+              and charge a fee for, acceptance of support, warranty, indemnity,
+              or other liability obligations and/or rights consistent with this
+              License. However, in accepting such obligations, You may act only
+              on Your own behalf and on Your sole responsibility, not on behalf
+              of any other Contributor, and only if You agree to indemnify,
+              defend, and hold each Contributor harmless for any liability
+              incurred by, or claims asserted against, such Contributor by reason
+              of your accepting any such warranty or additional liability.
+        
+           END OF TERMS AND CONDITIONS
+        
+           APPENDIX: How to apply the Apache License to your work.
+        
+              To apply the Apache License to your work, attach the following
+              boilerplate notice, with the fields enclosed by brackets "{}"
+              replaced with your own identifying information. (Don't include
+              the brackets!)  The text should be enclosed in the appropriate
+              comment syntax for the file format. We also recommend that a
+              file or class name and description of purpose be included on the
+              same "printed page" as the copyright notice for easier
+              identification within third-party archives.
+        
+           Copyright {yyyy} {name of copyright owner}
+        
+           Licensed under the Apache License, Version 2.0 (the "License");
+           you may not use this file except in compliance with the License.
+           You may obtain a copy of the License at
+        
+               https://www.apache.org/licenses/LICENSE-2.0
+        
+           Unless required by applicable law or agreed to in writing, software
+           distributed under the License is distributed on an "AS IS" BASIS,
+           WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+           See the License for the specific language governing permissions and
+           limitations under the License.
+        
+Project-URL: Homepage, https://github.com/allenai/AIGCcode
+Project-URL: Repository, https://github.com/allenai/AIGCcode
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: numpy
+Requires-Dist: torch<2.3,>=2.1
+Requires-Dist: ai2-aigcode-core==0.1.0
+Requires-Dist: omegaconf
+Requires-Dist: rich
+Requires-Dist: boto3
+Requires-Dist: google-cloud-storage
+Requires-Dist: tokenizers
+Requires-Dist: packaging
+Requires-Dist: cached_path>=1.6.2
+Requires-Dist: transformers
+Provides-Extra: dev
+Requires-Dist: ruff; extra == "dev"
+Requires-Dist: mypy<1.4,>=1.0; extra == "dev"
+Requires-Dist: black<24.0,>=23.1; extra == "dev"
+Requires-Dist: isort<5.13,>=5.12; extra == "dev"
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: pytest-sphinx; extra == "dev"
+Requires-Dist: twine>=1.11.0; extra == "dev"
+Requires-Dist: setuptools; extra == "dev"
+Requires-Dist: wheel; extra == "dev"
+Requires-Dist: build; extra == "dev"
+Provides-Extra: train
+Requires-Dist: wandb; extra == "train"
+Requires-Dist: beaker-gantry; extra == "train"
+Requires-Dist: click; extra == "train"
+Requires-Dist: torchmetrics; extra == "train"
+Requires-Dist: smashed[remote]>=0.21.1; extra == "train"
+Requires-Dist: safetensors; extra == "train"
+Requires-Dist: datasets; extra == "train"
+Requires-Dist: scikit-learn; extra == "train"
+Requires-Dist: msgspec>=0.14.0; extra == "train"
+Provides-Extra: all
+Requires-Dist: ai2-aigcode[dev,train]; extra == "all"
+
+<div align="center">
+  <!-- <img src="https://github.com/allenai/AIGCcode/assets/8812459/774ac485-a535-4768-8f7c-db7be20f5cc3" width="300"/> -->
+  <img src="https://allenai.org/aigcode/aigcode-7b-animation.gif" alt="AIGCcode Logo" width="800" style="margin-left:'auto' margin-right:'auto' display:'block'"/>
+  <br>
+  <br>
+  <h1>AIGCcode: Open Language Model</h1>
+</div>
+<p align="center">
+  <a href="https://github.com/allenai/AIGCcode/blob/main/LICENSE">
+    <img alt="GitHub License" src="https://img.shields.io/github/license/allenai/AIGCcode">
+  </a>
+  <a href="https://github.com/allenai/AIGCcode/releases">
+    <img alt="GitHub release" src="https://img.shields.io/github/release/allenai/AIGCcode.svg">
+  </a>
+  <a href="https://arxiv.org/pdf/2402.00838.pdf">
+    <img alt="Paper URL" src="https://img.shields.io/badge/arxiv-2402.00838-blue">
+  </a>
+</p>
+
+AIGCcode is a repository for training and using AI2's state-of-the-art open language models. 
+It is built by scientists, for scientists.
+
+## Installation
+
+First install [PyTorch](https://pytorch.org) according to the instructions specific to your operating system.
+
+To install from source (recommended for training/fine-tuning) run:
+
+```bash
+git clone https://github.com/allenai/AIGCcode.git
+cd AIGCcode
+pip install -e .[all]
+```
+
+Otherwise you can install the model code by itself directly from PyPI with:
+
+```bash
+pip install ai2-aigcode
+```
+
+## Models
+
+### Overview
+
+The core models in the AIGCcode family released so far are (all trained on the [Dolma dataset](https://huggingface.co/datasets/allenai/dolma)): 
+| Model | Training Tokens | Context Length | Training Config | W&B Logs | Data Order File(s) ☨ |
+|-------|-----------------|:--------------:|-----------------|----------|--------------------|
+| [AIGCcode 1B](https://huggingface.co/allenai/AIGCcode-1B) | 3 Trillion | 2048 | [configs/official/AIGCcode-1B.yaml](https://github.com/allenai/AIGCcode/blob/main/configs/official/AIGCcode-1B.yaml) | [wandb.ai/…/AIGCcode-1B](https://wandb.ai/ai2-llm/AIGCcode-1B/reports/AIGCcode-1B--Vmlldzo2NzY1Njk1) | [epoch 1](https://aigcode-checkpoints.org/ai2-llm/aigcode-small/46zc5fly/train_data/global_indices.npy) |
+| [AIGCcode 7B](https://huggingface.co/allenai/AIGCcode-7B) | 2.5 Trillion | 2048 | [configs/official/AIGCcode-7B.yaml](https://github.com/allenai/AIGCcode/blob/main/configs/official/AIGCcode-7B.yaml) | [wandb.ai/…/AIGCcode-7B](https://wandb.ai/ai2-llm/AIGCcode-7B/reports/AIGCcode-7B--Vmlldzo2NzQyMzk5) | [epoch 1](https://aigcode-checkpoints.org/ai2-llm/aigcode-medium/wvc30anm/train_data/global_indices.npy), [epoch 2](https://aigcode-checkpoints.org/ai2-llm/aigcode-medium/wd2gxrza/train_data/global_indices.npy) |
+| [AIGCcode 7B Twin 2T](https://huggingface.co/allenai/AIGCcode-7B-Twin-2T) | 2 Trillion  | 2048 | [configs/official/AIGCcode-7B.yaml](https://github.com/allenai/AIGCcode/blob/main/configs/official/AIGCcode-7B.yaml) | [wandb.ai/…/AIGCcode-7B-Twin-2T](https://wandb.ai/ai2-llm/AIGCcode-7B/reports/AIGCcode-7B-Twin-2T--Vmlldzo2NzU0NTIz) | [epoch 1](https://aigcode-checkpoints.org/ai2-llm/aigcode-medium/wvc30anm/train_data/global_indices.npy) |
+
+> ☨ *See [Inspecting training data](#inspecting-training-data) below for usage.*
+
+### Checkpoints
+
+URLs to checkpoints at intermediate steps of the models' trainings can be found in the csv files under [`checkpoints/official/`](https://github.com/allenai/AIGCcode/blob/main/checkpoints/official). These 'directory' URLs cannot currently be directly accessed, but files within the directory are publicly accessible. These URLs can also be provided to the training script to resume training from the checkpoint (see [Training](#training)). Each checkpoint directory consists of:
+
+- `config.yaml`: the config at that training step.
+- `model.pt`, `optim.pt`, `train.pt`: model, optimizer and training state at that training step.
+
+Details about the other types of AIGCcode checkpoints (including AIGCcode HF Transformers checkpoints) can be found in [Checkpoints.md](https://github.com/allenai/AIGCcode/blob/main/docs/Checkpoints.md).
+
+## Inference
+
+You can utilize our Hugging Face integration to run inference on the AIGCcode Transformers checkpoints:
+
+```python
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+aigcode = AutoModelForCausalLM.from_pretrained("allenai/AIGCcode-1.7-7B-hf")
+tokenizer = AutoTokenizer.from_pretrained("allenai/AIGCcode-1.7-7B-hf")
+
+message = ["Language modeling is "]
+inputs = tokenizer(message, return_tensors='pt', return_token_type_ids=False)
+response = aigcode.generate(**inputs, max_new_tokens=100, do_sample=True, top_k=50, top_p=0.95)
+print(tokenizer.batch_decode(response, skip_special_tokens=True)[0])
+```
+
+Alternatively, with the Hugging Face pipeline abstraction:
+
+```python
+from transformers import pipeline
+aigcode_pipe = pipeline("text-generation", model="allenai/AIGCcode-1.7-7B-hf")
+print(aigcode_pipe("Language modeling is"))
+```
+
+### Inference on finetuned checkpoints
+
+If you finetune the model using the code in [Fine-tuning](#fine-tuning), you can use the conversion script to convert a native AIGCcode checkpoint to a Hugging Face-compatible checkpoint.
+
+```bash
+python scripts/convert_aigcode_to_hf_new.py --input_dir /path/to/aigcode/checkpoint --output_dir /path/to/hf/checkpoint/ --tokenizer_json_path tokenizers/allenai_gpt-neox-aigcode-dolma-v1_5.json
+```
+
+### Quantization
+
+```python
+aigcode = AutoModelForCausalLM.from_pretrained("allenai/AIGCcode-1.7-7B-hf", torch_dtype=torch.float16, load_in_8bit=True)  # requires bitsandbytes
+```
+
+The quantized model is more sensitive to typing / cuda, so it is recommended to pass the inputs as inputs.input_ids.to('cuda') to avoid potential issues.
+
+## Reproducibility
+
+### Training
+
+The configs used to train the official AIGCcode models are provided in the [`configs/official/`](https://github.com/allenai/AIGCcode/blob/main/configs/official) directory.
+
+Note that while the training and validation data is public and free to download, the paths to the data within those configs are pointed at a CloudFlare R2 bucket, which requires an API key for programmatic access.
+So in order to use any of these configs to reproduce a training run you'll first have to download the corresponding data to a location of your choosing and then update the paths in the config accordingly.
+
+You can derive the public HTTP URL from an R2 URL by replacing `r2://aigcode-data` with `https://aigcode-data.org`.
+For example, if the R2 data URL is:
+
+`r2://aigcode-data/preprocessed/aigcode-mix/v1_5/gpt-neox-20b-pii-special/part-000-00000.npy`
+
+then the corresponding public URL is:
+
+`https://aigcode-data.org/preprocessed/aigcode-mix/v1_5/gpt-neox-20b-pii-special/part-000-00000.npy`
+
+Once you've updated the data paths in the config you can launch a training run via `torchrun`. For example, to launch the 1B model training on a single 8x GPU node, you would run:
+
+```bash
+torchrun --nproc_per_node=8 scripts/train.py configs/official/AIGCcode-1B.yaml
+```
+
+You can use the same method to launch multi-node jobs as well. See [the documentation](https://pytorch.org/docs/stable/elastic/run.html) for `torchrun` to understand the additional arguments you'll need to configure the rendezvous backend / endpoint.
+
+To resume training from a checkpoint, you can pass its path (local or URL)
+to `scripts/train.py` with the `--load_path` arguments. For example, to resume training from step 1000 of the AIGCcode 1B run:
+
+```bash
+torchrun --nproc_per_node=8 scripts/train.py configs/official/AIGCcode-1B.yaml --load_path https://aigcode-checkpoints.org/ai2-llm/aigcode-small/w1r5xfzt/step1000-unsharded
+```
+
+### Inspecting training data
+
+You may be interested in inspecting the exact tokens that composed a particular batch during the training of one of the AIGCcode models.
+We provide tools to do this, but first you'll need to download the data as above (unless you have an R2 API key) and update the corresponding config accordingly.
+
+Then take note of the URL of the data order file you want, which can be found in the [Models Overview](#models-overview) table. For example, the data order file for the first epoch of the AIGCcode-7B model is [https://aigcode-checkpoints.org/ai2-llm/aigcode-medium/wvc30anm/train_data/global_indices.npy](https://aigcode-checkpoints.org/ai2-llm/aigcode-small/46zc5fly/train_data/global_indices.npy).
+
+Once you have that you can use this snippet to inspect the data within a particular batch:
+
+```python
+import numpy as np
+from cached_path import cached_path
+
+from aigcode.config import TrainConfig
+from aigcode.data import build_memmap_dataset
+
+# Update these paths to what you want:
+data_order_file_path = cached_path("https://aigcode-checkpoints.org/ai2-llm/aigcode-medium/wvc30anm/train_data/global_indices.npy")
+train_config_path = "configs/official/AIGCcode-7B.yaml"
+
+
+cfg = TrainConfig.load(train_config_path)
+dataset = build_memmap_dataset(cfg, cfg.data)
+batch_size = cfg.global_train_batch_size
+global_indices = np.memmap(data_order_file_path, mode="r+", dtype=np.uint32)
+
+
+def get_batch_instances(batch_idx: int) -> list[list[int]]:
+    batch_start = batch_idx * batch_size
+    batch_end = (batch_idx + 1) * batch_size
+    batch_indices = global_indices[batch_start:batch_end]
+    batch_instances = []
+    for index in batch_indices:
+        token_ids = dataset[index]["input_ids"].tolist()
+        batch_instances.append(token_ids)
+    return batch_instances
+
+
+# Get all 2048 x 2048 token IDs in the first batch.
+get_batch_instances(0)
+```
+
+
+## Fine-tuning
+
+To fine-tune an AIGCcode model using our trainer you'll first need to prepare your dataset by tokenizing it and saving the tokens IDs to a flat numpy memory-mapped array. See [`scripts/prepare_tulu_data.py`](./scripts/prepare_tulu_data.py) for an example with the Tulu V2 dataset, which can be easily modified for other datasets.
+
+Next, prepare your training config. There are many examples in the [`configs/`](https://github.com/allenai/AIGCcode/blob/main/configs) directory that you can use as a starting point. The most important thing is to make sure the model parameters (the `model` field in the config) match up with the checkpoint you're starting from. To be safe you can always start from the config that comes with the model checkpoint. At a minimum you'll need to make the following changes to the config or provide the corresponding overrides from the command line:
+
+- Update `load_path` to point to the checkpoint you want to start from.
+- Set `reset_trainer_state` to `true`.
+- Update `data.paths` to point to the `token_ids.npy` file you generated.
+- Optionally update `data.label_mask_paths` to point to the `label_mask.npy` file you generated, unless you don't need special masking for the loss.
+- Update `evaluators` to add/remove in-loop evaluations.
+
+Once you're satisfied with your training config, you can launch the training job via `torchrun`. For example:
+
+```
+torchrun --nproc_per_node=8 scripts/train.py {path_to_train_config} \
+    --data.paths=[{path_to_data}/input_ids.npy] \
+    --data.label_mask_paths=[{path_to_data}/label_mask.npy] \
+    --load_path={path_to_checkpoint} \
+    --reset_trainer_state
+```
+
+Note: passing CLI overrides like `--reset_trainer_state` is only necessary if you didn't update those fields in your config.
+
+## Evaluation
+
+Additional tools for evaluating AIGCcode models are available at the [AIGCcode Eval](https://github.com/allenai/ai2-aigcode-eval) repo.
+
+## Citing
+
+```bibtex
+@article{AIGCcode,
+  title={AIGCcode: Accelerating the Science of Language Models},
+  author={Dirk Groeneveld and Iz Beltagy and Pete Walsh and Akshita Bhagia and Rodney Kinney and Oyvind Tafjord and A. Jha and Hamish Ivison and Ian Magnusson and Yizhong Wang and Shane Arora and David Atkinson and Russell Authur and Khyathi Raghavi Chandu and Arman Cohan and Jennifer Dumas and Yanai Elazar and Yuling Gu and Jack Hessel and Tushar Khot and William Merrill and Jacob Daniel Morrison and Niklas Muennighoff and Aakanksha Naik and Crystal Nam and Matthew E. Peters and Valentina Pyatkin and Abhilasha Ravichander and Dustin Schwenk and Saurabh Shah and Will Smith and Emma Strubell and Nishant Subramani and Mitchell Wortsman and Pradeep Dasigi and Nathan Lambert and Kyle Richardson and Luke Zettlemoyer and Jesse Dodge and Kyle Lo and Luca Soldaini and Noah A. Smith and Hanna Hajishirzi},
+  year={2024},
+  url={https://api.semanticscholar.org/CorpusID:267365485},
+  journal={arXiv preprint},
+}
+```

@@ -1,0 +1,3 @@
+dt=`date +%Y%m%d.%H%M`
+logfile=./logs/${1}.${dt}.log
+`nohup python scripts/prepare_memmap_dataset.py /sharedata/zimoliu/data/neo_test_data_sc/cc_zh/${1} -o /sharedata/zimoliu/data/neo_test_data_npy/cc_zh/${1} --tokenizer tokenizers/neo_tokenizer.json --workers 8 ${1} > ${logfile} 2>&1 &`
