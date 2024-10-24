@@ -221,8 +221,4 @@ class AIGCcodeXMoEForCausalLM(PreTrainedModel):
 
         return model_embeds
 
-
-# Register the model so that it is available for transformer pipelines, auto-loading, etc.
-# AIGCcode is integrated directly in transformers from v4.40.0 onwards, but the version in transformers
-# may not support the newest architectures we create.
 AutoModelForCausalLM.register(AIGCcodeXMoEConfig, AIGCcodeXMoEForCausalLM)

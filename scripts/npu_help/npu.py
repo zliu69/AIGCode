@@ -334,27 +334,15 @@ def _init():
     torch.Tensor.is_cuda = torch.Tensor.is_npu
     torch.cuda.DoubleTensor = torch.npu.FloatTensor
 
-    # torch.nn.Module.*
-    
-    #_device_wrapper(torch.nn.Module, torch_module_fn_white_list)
-    #torch.nn.Module.cuda = torch.nn.Module.npu
-
     # torch.distributed.init_process_group
     torch.distributed.init_process_group = _wrapper_hccl(torch.distributed.init_process_group)
     torch.distributed.is_nccl_available = torch.distributed.is_hccl_available
     torch.distributed.ProcessGroup._get_backend = _wrapper_cuda(torch.distributed.ProcessGroup._get_backend)
-
-    # torch.nn.parallel.DistributedDataParallel
-    #_device_wrapper(torch.nn.parallel.DistributedDataParallel, torch_distributed_fn_white_list)
-    # torch.utils.data.DataLoader
-    #torch.utils.data.DataLoader.__init__ = _wrapper_data_loader(torch.utils.data.DataLoader.__init__)
-
     torch.jit.script = _jit_script
 
-    #torch._dynamo.trace_rules._disallowed_callable_ids.function_ids = None
 
     if IS_TORCHAIR_INSTALLED:
         torch.compile = _wrapper_compile(torch.compile)
 
-    #_do_wrapper_libraries_func(_load_json_file(config_path))
+
 

@@ -7,11 +7,7 @@ import torch
 from omegaconf import OmegaConf as om
 
 from hf_aigcode.configuration_aigcodexmoe import AIGCcodeXMoEConfig
-# from .configuration_aigcodexmoe import AIGCcodeXMoEConfig
 from hf_aigcode.modeling_aigcodexmoe import AIGCcodeXMoEForCausalLM
-# from .modeling_aigcodexmoe import AIGCcodeXMoEForCausalLM
-
-# from hf_aigcodexmoe.tokenization_aigcode_fast import AIGCcodeTokenizerFast
 from aigcode import ModelConfig, Tokenizer
 
 logger = logging.getLogger(__name__)
@@ -68,7 +64,6 @@ def convert_checkpoint(checkpoint_dir: str, to_hf_dir: str, ignore_aigcode_compa
         os.makedirs(to_hf_dir)
     write_config(checkpoint_dir, to_hf_dir)
     write_model(checkpoint_dir, to_hf_dir, ignore_aigcode_compatibility=ignore_aigcode_compatibility)
-    # write_tokenizer(checkpoint_dir)
 
     # Cannot remove it before writing the tokenizer
     if ignore_aigcode_compatibility:
@@ -98,14 +93,6 @@ def download_remote_checkpoint_and_convert_to_hf(checkpoint_dir: str, local_dir:
     return local_model_path
 
 
-# def fix_bad_tokenizer(checkpoint_dir: str):
-#     path = os.path.join(checkpoint_dir, "config.yaml")
-#     conf = om.load(path)
-#     conf["tokenizer"]["identifier"] = "allenai/gpt-neox-aigcode-dolma-v1_5"
-#     conf["model"]["eos_token_id"] = 50279
-#     om.save(conf, path)
-
-
 def main():
     parser = argparse.ArgumentParser(
         description="Adds a config.json to the checkpoint directory, and creates pytorch_model.bin, "
@@ -131,7 +118,6 @@ def main():
     args = parser.parse_args()
     print("args:{}\n".format(args))
     os.makedirs(args.to_hf_dir, exist_ok=True)
-    # fix_bad_tokenizer(args.checkpoint_dir)
     convert_checkpoint(args.checkpoint_dir, args.to_hf_dir, args.ignore_aigcode_compatibility)
 
 

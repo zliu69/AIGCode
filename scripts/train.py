@@ -38,8 +38,6 @@ from aigcode.torch_util import (
     seed_all,
 )
 from aigcode.train import Trainer
-from aigcode.train_check import TrainerCheck
-from aigcode.train_eval import TrainEvaluator
 from aigcode.util import (
     add_cached_path_clients,
     clean_opt,
@@ -65,7 +63,6 @@ def main(cfg: TrainConfig) -> None:
 
     if cfg.gpu_type == "ascend":
         import torch_npu.contrib.transfer_to_npu
-        #npu = torch_npu::init_npu("npu:0");
     torch.cuda.set_device(f"cuda:{get_local_rank()}")
     device = torch.device("cuda")   
     barrier()
@@ -88,13 +85,10 @@ def main(cfg: TrainConfig) -> None:
 
     # Display and save configuration.
     if get_global_rank() == 0:
-        # if cfg.data.paths is not None and len(cfg.data.paths) < 50:
-        #     cfg.data.file_count = len(cfg.data.paths)
+        
         log.info("Configuration:")
         log.info(cfg)
-        # if cfg.data.paths is not None and len(cfg.data.paths) < 50:
-        #     log.info("Configuration:")
-        #     log.info(cfg)
+        
         if not cfg.dry_run and (cfg.load_path is None or Path(cfg.load_path).parent != Path(cfg.save_folder)):
             # Save config.
             save_path = Path(cfg.save_folder) / "config.yaml"
@@ -236,250 +230,109 @@ def main(cfg: TrainConfig) -> None:
         indices_file = gzip.open(indices_file_path, "wt")
 
     # Consolidate components into `Trainer` object.
-    if not cfg.moe_logging:
-        with Trainer(
-            cfg=cfg,
-            epoch=cfg.epoch,
-            model=aigcode_model,
-            dist_model=dist_model,
-            optim=optim,
-            scheduler=scheduler,
-            train_loader=train_loader,
-            device=device,
-            evaluators=evaluators,
-            indices_file=indices_file,
-        ) as trainer:
-            if not cfg.dry_run and not cfg.no_pre_train_checkpoint and cfg.load_path is None:
-                if cfg.distributed_strategy == DistributedStrategy.ddp:
-                    checkpoint_type = CheckpointType.unsharded
+    with Trainer(
+        cfg=cfg,
+        epoch=cfg.epoch,
+        model=aigcode_model,
+        dist_model=dist_model,
+        optim=optim,
+        scheduler=scheduler,
+        train_loader=train_loader,
+        device=device,
+        evaluators=evaluators,
+        indices_file=indices_file,
+    ) as trainer:
+        if not cfg.dry_run and not cfg.no_pre_train_checkpoint and cfg.load_path is None:
+            if cfg.distributed_strategy == DistributedStrategy.ddp:
+                checkpoint_type = CheckpointType.unsharded
 
-                    if cfg.save_interval_unsharded is None:
-                        log.warning(
-                            "DDP requires setting `save_interval_unsharded`. Using the value set for `save_interval`."
-                        )
-                        cfg.save_interval_unsharded = cfg.save_interval
-
-                    if cfg.save_num_unsharded_checkpoints_to_keep == 0:
-                        log.warning(
-                            "DDP requires setting `save_num_unsharded_checkpoints_to_keep`. Using the value set for `save_num_checkpoints_to_keep`."
-                        )
-                        cfg.save_num_unsharded_checkpoints_to_keep = cfg.save_num_checkpoints_to_keep
-                elif cfg.distributed_strategy == DistributedStrategy.fsdp:
-                    checkpoint_type = (
-                        CheckpointType.sharded if cfg.save_num_checkpoints_to_keep != 0 else CheckpointType.unsharded
+                if cfg.save_interval_unsharded is None:
+                    log.warning(
+                        "DDP requires setting `save_interval_unsharded`. Using the value set for `save_interval`."
                     )
-                else:
-                    raise NotImplementedError(f"Distributed strategy {cfg.distributed_strategy} not supported yet!")
+                    cfg.save_interval_unsharded = cfg.save_interval
 
-                # We save a checkpoint up-front to make sure this won't fail (due to disk space or whatever).
-                log.info("Saving pre-train checkpoint...")
-                checkpoint_path, local_checkpoint_cache = trainer.save_checkpoint(checkpoint_type=checkpoint_type)
-                log.info(f"Checkpoint saved to {checkpoint_path}")
-
-                # And they we verify that we can load it.
-                log.info("Attempting to load pre-train checkpoint...")
-                trainer.restore_checkpoint(
-                    checkpoint_path, checkpoint_type=checkpoint_type, local_cache=local_checkpoint_cache
-                )
-                log.info("Checkpoint successfully loaded")
-
-                # NOTE: https://github.com/allenai/LLM/issues/233
-                #  log.info("Removing pre-train checkpoint...")
-                #  trainer.remove_checkpoint(checkpoint_type=checkpoint_type)
-                #  log.info("Successfully removed checkpoint")
-
-            if cfg.load_path is not None:
-                log.info(f"Loading checkpoint from {cfg.load_path}...")
-                trainer.restore_checkpoint(
-                    cfg.load_path,
-                    load_optimizer_state=not cfg.reset_optimizer_state,
-                    load_trainer_state=not cfg.reset_trainer_state,
-                    sharded_checkpointer=cfg.load_path_sharded_checkpointer,
-                )
-                log.info("Checkpoint successfully loaded")
-
-                # If we have to, set a new scheduler:
-                if cfg.reset_optimizer_state and not cfg.reset_trainer_state:
-                    trainer.scheduler = BoltOnWarmupScheduler.wrap(
-                        trainer.scheduler,
-                        trainer.global_step,
-                        int(trainer.global_step + cfg.scheduler.t_warmup),
+                if cfg.save_num_unsharded_checkpoints_to_keep == 0:
+                    log.warning(
+                        "DDP requires setting `save_num_unsharded_checkpoints_to_keep`. Using the value set for `save_num_checkpoints_to_keep`."
                     )
-
-            if cfg.force_save_unsharded and cfg.distributed_strategy != DistributedStrategy.ddp:
-                log.info("Saving unsharded checkpoint...")
-                checkpoint_path, _ = trainer.save_checkpoint(checkpoint_type=CheckpointType.unsharded)
-                log.info(f"Unsharded checkpoint saved to {checkpoint_path}")
-
-            if cfg.compile is not None:
-                # TODO (epwalsh): trying to compile the whole train step results in a compile-time error from within
-                # the optimizer. We should investigate this further at some point.
-                #  trainer.train_step = torch.compile(trainer.train_step, **cfg.compile.asdict())
-                trainer.train_batch = torch.compile(trainer.train_batch, **cfg.compile.asdict())  # type: ignore
-                # TODO (epwalsh): compiling the `eval_batch()` method is a little sketchy since the inputs will look
-                # different for different eval tasks. That might be okay, but it might not be.
-                #  trainer.eval_batch = torch.compile(trainer.eval_batch, **cfg.compile.asdict())  # type: ignore
-                # Alternatively, could just do this:
-                #  trainer.fsdp_model = torch.compile(trainer.fsdp_model, **cfg.compile.asdict())
-
-            if not cfg.dry_run:
-                log.info("Starting training...")
-                trainer.fit()
-                log.info("Training complete")
+                    cfg.save_num_unsharded_checkpoints_to_keep = cfg.save_num_checkpoints_to_keep
+            elif cfg.distributed_strategy == DistributedStrategy.fsdp:
+                checkpoint_type = (
+                    CheckpointType.sharded if cfg.save_num_checkpoints_to_keep != 0 else CheckpointType.unsharded
+                )
             else:
-                log.info("Dry run complete")
+                raise NotImplementedError(f"Distributed strategy {cfg.distributed_strategy} not supported yet!")
 
-    # Check moe routine while training. 
-    elif cfg.moe_logging and not cfg.train_eval:
-        with TrainerCheck(
-            cfg=cfg,
-            epoch=cfg.epoch,
-            model=aigcode_model,
-            dist_model=dist_model,
-            optim=optim,
-            scheduler=scheduler,
-            train_loader=train_loader,
-            device=device,
-            evaluators=evaluators,
-            indices_file=indices_file,
-        ) as trainer:
-            if not cfg.dry_run and not cfg.no_pre_train_checkpoint and cfg.load_path is None:
-                if cfg.distributed_strategy == DistributedStrategy.ddp:
-                    checkpoint_type = CheckpointType.unsharded
+            # We save a checkpoint up-front to make sure this won't fail (due to disk space or whatever).
+            log.info("Saving pre-train checkpoint...")
+            checkpoint_path, local_checkpoint_cache = trainer.save_checkpoint(checkpoint_type=checkpoint_type)
+            log.info(f"Checkpoint saved to {checkpoint_path}")
 
-                    if cfg.save_interval_unsharded is None:
-                        log.warning(
-                            "DDP requires setting `save_interval_unsharded`. Using the value set for `save_interval`."
-                        )
-                        cfg.save_interval_unsharded = cfg.save_interval
-
-                    if cfg.save_num_unsharded_checkpoints_to_keep == 0:
-                        log.warning(
-                            "DDP requires setting `save_num_unsharded_checkpoints_to_keep`. Using the value set for `save_num_checkpoints_to_keep`."
-                        )
-                        cfg.save_num_unsharded_checkpoints_to_keep = cfg.save_num_checkpoints_to_keep
-                elif cfg.distributed_strategy == DistributedStrategy.fsdp:
-                    checkpoint_type = (
-                        CheckpointType.sharded if cfg.save_num_checkpoints_to_keep != 0 else CheckpointType.unsharded
-                    )
-                else:
-                    raise NotImplementedError(f"Distributed strategy {cfg.distributed_strategy} not supported yet!")
-
-                # We save a checkpoint up-front to make sure this won't fail (due to disk space or whatever).
-                log.info("Saving pre-train checkpoint...")
-                checkpoint_path, local_checkpoint_cache = trainer.save_checkpoint(checkpoint_type=checkpoint_type)
-                log.info(f"Checkpoint saved to {checkpoint_path}")
-
-                # And they we verify that we can load it.
-                log.info("Attempting to load pre-train checkpoint...")
-                trainer.restore_checkpoint(
-                    checkpoint_path, checkpoint_type=checkpoint_type, local_cache=local_checkpoint_cache
-                )
-                log.info("Checkpoint successfully loaded")
-
-                # NOTE: https://github.com/allenai/LLM/issues/233
-                #  log.info("Removing pre-train checkpoint...")
-                #  trainer.remove_checkpoint(checkpoint_type=checkpoint_type)
-                #  log.info("Successfully removed checkpoint")
-
-            if cfg.load_path is not None:
-                log.info(f"Loading checkpoint from {cfg.load_path}...")
-                trainer.restore_checkpoint(
-                    cfg.load_path,
-                    load_optimizer_state=not cfg.reset_optimizer_state,
-                    load_trainer_state=not cfg.reset_trainer_state,
-                    sharded_checkpointer=cfg.load_path_sharded_checkpointer,
-                )
-                log.info("Checkpoint successfully loaded")
-
-                # If we have to, set a new scheduler:
-                if cfg.reset_optimizer_state and not cfg.reset_trainer_state:
-                    trainer.scheduler = BoltOnWarmupScheduler.wrap(
-                        trainer.scheduler,
-                        trainer.global_step,
-                        int(trainer.global_step + cfg.scheduler.t_warmup),
-                    )
-
-            if cfg.force_save_unsharded and cfg.distributed_strategy != DistributedStrategy.ddp:
-                log.info("Saving unsharded checkpoint...")
-                checkpoint_path, _ = trainer.save_checkpoint(checkpoint_type=CheckpointType.unsharded)
-                log.info(f"Unsharded checkpoint saved to {checkpoint_path}")
-
-            if cfg.compile is not None:
-                # TODO (epwalsh): trying to compile the whole train step results in a compile-time error from within
-                # the optimizer. We should investigate this further at some point.
-                #  trainer.train_step = torch.compile(trainer.train_step, **cfg.compile.asdict())
-                trainer.train_batch = torch.compile(trainer.train_batch, **cfg.compile.asdict())  # type: ignore
-                # TODO (epwalsh): compiling the `eval_batch()` method is a little sketchy since the inputs will look
-                # different for different eval tasks. That might be okay, but it might not be.
-                #  trainer.eval_batch = torch.compile(trainer.eval_batch, **cfg.compile.asdict())  # type: ignore
-                # Alternatively, could just do this:
-                #  trainer.fsdp_model = torch.compile(trainer.fsdp_model, **cfg.compile.asdict())
-
-            if not cfg.dry_run:
-                log.info("Starting training...")
-                trainer.fit()
-                log.info("Training complete")
-            else:
-                log.info("Dry run complete")
-
-    # Check moe routine while eval.
-    elif cfg.moe_logging and cfg.train_eval:
-        with TrainEvaluator(
-            cfg=cfg,
-            model=aigcode_model,
-            dist_model=dist_model,
-            device=device,
-            evaluators=evaluators,
-            indices_file=indices_file,
-        ) as train_evaluator:
             # And they we verify that we can load it.
-            print("train_eval: {}".format(cfg.train_eval))
-            log.info("Attempting to load pre-train checkpoint for eval...")
-            train_evaluator.restore_checkpoint(
-                cfg.load_path, checkpoint_type=CheckpointType.unsharded, local_cache=None
+            log.info("Attempting to load pre-train checkpoint...")
+            trainer.restore_checkpoint(
+                checkpoint_path, checkpoint_type=checkpoint_type, local_cache=local_checkpoint_cache
             )
-            # print("moe_layer.args.moe_logging: {}".format(train_evaluator.model.transformer.share_moe_layers[0][0].moe_layer.args.moe_logging))
-            # print("0 gate.config.moe_logging: {}".format(train_evaluator.model.transformer.share_moe_layers[0][0].moe_layer.moe_layers[0].gate.config.moe_logging))
-            # print("1 gate.config.moe_logging: {}".format(train_evaluator.model.transformer.share_moe_layers[0][0].moe_layer.moe_layers[1].gate.config.moe_logging))
-            # train_evaluator.model.transformer.share_moe_layers[0][0].moe_layer.args.moe_logging = True
-            # train_evaluator.model.transformer.share_moe_layers[0][0].moe_layer.moe_layers[0].gate.config.moe_logging = True
-            # train_evaluator.model.transformer.share_moe_layers[0][0].moe_layer.moe_layers[1].gate.config.moe_logging = True
-            #     checkpoint_path, checkpoint_type=CheckpointType.unsharded, local_cache=local_checkpoint_cache
-            # )
             log.info("Checkpoint successfully loaded")
 
+            # NOTE: https://github.com/allenai/LLM/issues/233
+            #  log.info("Removing pre-train checkpoint...")
+            #  trainer.remove_checkpoint(checkpoint_type=checkpoint_type)
+            #  log.info("Successfully removed checkpoint")
+
+        if cfg.load_path is not None:
+            log.info(f"Loading checkpoint from {cfg.load_path}...")
+            trainer.restore_checkpoint(
+                cfg.load_path,
+                load_optimizer_state=not cfg.reset_optimizer_state,
+                load_trainer_state=not cfg.reset_trainer_state,
+                sharded_checkpointer=cfg.load_path_sharded_checkpointer,
+            )
+            log.info("Checkpoint successfully loaded")
+
+            # If we have to, set a new scheduler:
+            if cfg.reset_optimizer_state and not cfg.reset_trainer_state:
+                trainer.scheduler = BoltOnWarmupScheduler.wrap(
+                    trainer.scheduler,
+                    trainer.global_step,
+                    int(trainer.global_step + cfg.scheduler.t_warmup),
+                )
+
+        if cfg.force_save_unsharded and cfg.distributed_strategy != DistributedStrategy.ddp:
+            log.info("Saving unsharded checkpoint...")
+            checkpoint_path, _ = trainer.save_checkpoint(checkpoint_type=CheckpointType.unsharded)
+            log.info(f"Unsharded checkpoint saved to {checkpoint_path}")
+
+        if cfg.compile is not None:
+            # TODO (epwalsh): trying to compile the whole train step results in a compile-time error from within
+            # the optimizer. We should investigate this further at some point.
+            #  trainer.train_step = torch.compile(trainer.train_step, **cfg.compile.asdict())
+            trainer.train_batch = torch.compile(trainer.train_batch, **cfg.compile.asdict())  # type: ignore
+            # TODO (epwalsh): compiling the `eval_batch()` method is a little sketchy since the inputs will look
+            # different for different eval tasks. That might be okay, but it might not be.
+            #  trainer.eval_batch = torch.compile(trainer.eval_batch, **cfg.compile.asdict())  # type: ignore
+            # Alternatively, could just do this:
+            #  trainer.fsdp_model = torch.compile(trainer.fsdp_model, **cfg.compile.asdict())
+
+        if not cfg.dry_run:
             log.info("Starting training...")
-            train_evaluator.fit()
+            trainer.fit()
             log.info("Training complete")
+        else:
+            log.info("Dry run complete")
+
 
 
 if __name__ == "__main__":
-    ###
-    # mkdir /aigcode 
-    # source /sharedata/zimoliu/.bashrc
-    # conda activate npu_bck
-    # cp -r /sharedata/ben/zimo_aigcode_moe/{aigcode,scripts,tokenizers,configs,pyproject.toml} /aigcode
-    # cd /aigcode
-    # pip install  -e .
-    # wandb login --relogin 737b806b860131f371335360cbf465a4f82f6e6b
-    # export HCCL_CONNECT_TIMEOUT=720
-    # export HTTP_PROXY=http://user:passWorD@223.106.234.3:1080
-    # export HTTPS_PROXY=http://user:passWorD@223.106.234.3:1080
-    # torchrun --nproc_per_node=$KUBERNETES_CONTAINER_RESOURCE_GPU  --nnodes=$WORLD_SIZE --node_rank=$RANK  --master_addr=$MASTER_ADDR --master_port=$MASTER_PORT scripts/train.py configs/official/AIGCcode-7B_moe_4m_base_160npu_test_dist_v4.yaml --save_folder=/sharedata/aigcode_7b_checkpoints/810 --save_overwrite
-    ###
-    # export HTTP_PROXY=http://user:passWorD@223.106.234.3:1080
-    # export HTTPS_PROXY=http://user:passWorD@223.106.234.3:1080
-    # os.environ["HTTP_PROXY"] = "http://user:passWorD@223.106.234.3:1080"
-    # os.environ["HTTPS_PROXY"] = "http://user:passWorD@223.106.234.3:1080"
+    
     try:
         yaml_path, args_list = sys.argv[1], sys.argv[2:]
     except IndexError:
         raise AIGCcodeCliError(f"Usage: {sys.argv[0]} [CONFIG_PATH] [OPTIONS]")
     print("loading TrainConfig.")
     print(yaml_path)
-    # print([clean_opt(s) for s in args_list])
-    # print(TrainConfig)
+
     cfg = TrainConfig.load(yaml_path, [clean_opt(s) for s in args_list])
     try:
         mp.set_start_method("spawn", force=True)
@@ -504,11 +357,4 @@ if __name__ == "__main__":
     log.info("CLI environment prepared")
 
     add_cached_path_clients()
-
-    # try:
-    #     yaml_path, args_list = sys.argv[1], sys.argv[2:]
-    # except IndexError:
-    #     raise AIGCcodeCliError(f"Usage: {sys.argv[0]} [CONFIG_PATH] [OPTIONS]")
-
-    # cfg = TrainConfig.load(yaml_path, [clean_opt(s) for s in args_list])
     main(cfg)

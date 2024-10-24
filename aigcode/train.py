@@ -695,12 +695,9 @@ class Trainer:
             loss = ce_loss + z_loss
         else:
             loss = ce_loss
-        # print("loss only ce : {}\n".format(loss))
         if self.cfg.moe_auxiliary_loss:
             assert l_aux is not None
             loss = loss + l_aux * self.cfg.moe_auxiliary_loss_weight
-            # print("loss laux: {}\n".format(l_aux))
-            # print("loss ce & laux: {}\n".format(loss))
         del logits
 
         return loss, ce_loss, z_loss, l_aux

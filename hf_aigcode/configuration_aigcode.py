@@ -36,8 +36,4 @@ class AIGCcodeConfig(PretrainedConfig):
     def hidden_size(self):
         return self.d_model
 
-
-# Register the config class so that it is available for transformer pipelines, auto-loading etc.
-# AIGCcode is integrated directly in transformers from v4.40.0 onwards, but the version in transformers
-# may not support the newest architectures we create.
 AutoConfig.register("hf_aigcode", AIGCcodeConfig)

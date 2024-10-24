@@ -325,10 +325,6 @@ def _init():
     _device_wrapper(torch.cuda, torch_cuda_fn_white_list)
     torch.cuda.device.__init__ = _wrapper_cuda(torch.cuda.device.__init__)
 
-    # torch.profiler.*
-    #_patch_profiler()
-    #torch.profiler.profile = _wrapper_profiler(torch.profiler.profile)
-
     # torch.*
     _device_wrapper(torch, torch_fn_white_list)
     torch.UntypedStorage.__new__ = _wrapper_cuda(torch.UntypedStorage.__new__)
@@ -364,7 +360,6 @@ def _init():
 
     setattr(torch.utils._triton, 'has_triton', _patch_has_triton)
 
-    #_do_wrapper_libraries_func(_load_json_file(config_path))
 
 
 _init()
