@@ -8,7 +8,7 @@ dynamic = ["version"]
 readme = "README.md"
 description = "Open Language Model (AIGCode)"
 authors = [
-    { name = "Allen Institute for Artificial Intelligence", email = "aigcode@allenai.org" }
+    { name = "AIGCode", email = "aigcode@aigcode.net" }
 ]
 requires-python = ">=3.8"
 license = { file = "LICENSE" }
@@ -54,8 +54,8 @@ all = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/allenai/AIGCode"
-Repository = "https://github.com/allenai/AIGCode"
+Homepage = "https://github.com/zliu69/AIGCode"
+Repository = "https://github.com/zliu69/AIGCode"
 
 [tool.setuptools]
 include-package-data = true
