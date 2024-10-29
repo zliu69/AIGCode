@@ -1,3 +1,0 @@
-dt=`date +%Y%m%d.%H%M`
-logfile=./logs/${1}.${dt}.log
-`nohup sh run1.sh ${1} > ${logfile} 2>&1 &`

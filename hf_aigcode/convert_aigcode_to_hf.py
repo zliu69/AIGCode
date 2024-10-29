@@ -6,9 +6,9 @@ import shutil
 import torch
 from omegaconf import OmegaConf as om
 
-from hf_aigcode.configuration_aigcode import AIGCcodeConfig
-from hf_aigcode.modeling_aigcode import AIGCcodeForCausalLM
-from hf_aigcode.tokenization_aigcode_fast import AIGCcodeTokenizerFast
+from hf_aigcode.configuration_aigcode import AIGCodeConfig
+from hf_aigcode.modeling_aigcode import AIGCodeForCausalLM
+from hf_aigcode.tokenization_aigcode_fast import AIGCodeTokenizerFast
 from aigcode import ModelConfig, Tokenizer
 
 logger = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ def write_config(checkpoint_dir: str):
     model_config = ModelConfig.load(config_path, key="model")
     config_kwargs = model_config.asdict()
     config_kwargs["use_cache"] = True
-    config = AIGCcodeConfig(**config_kwargs)
+    config = AIGCodeConfig(**config_kwargs)
 
     logger.info(f"Saving HF-compatible config to {os.path.join(checkpoint_dir, 'config.json')}")
     config.save_pretrained(checkpoint_dir)
@@ -37,7 +37,7 @@ def write_model(checkpoint_dir: str, ignore_aigcode_compatibility: bool = False)
     new_model_path = os.path.join(checkpoint_dir, "pytorch_model.bin")
 
     state_dict = torch.load(old_model_path)
-    new_state_dict = {f"{AIGCcodeForCausalLM.base_model_prefix}.{key}": val for key, val in state_dict.items()}
+    new_state_dict = {f"{AIGCodeForCausalLM.base_model_prefix}.{key}": val for key, val in state_dict.items()}
     torch.save(new_state_dict, new_model_path)
 
     if ignore_aigcode_compatibility:
@@ -46,7 +46,7 @@ def write_model(checkpoint_dir: str, ignore_aigcode_compatibility: bool = False)
 
 def write_tokenizer(checkpoint_dir: str):
     tokenizer_raw = Tokenizer.from_checkpoint(checkpoint_dir)
-    tokenizer = AIGCcodeTokenizerFast(
+    tokenizer = AIGCodeTokenizerFast(
         tokenizer_object=tokenizer_raw.base_tokenizer,
         truncation=tokenizer_raw.truncate_direction,
         max_length=tokenizer_raw.truncate_to,
@@ -107,7 +107,7 @@ def main():
     )
     parser.add_argument(
         "--checkpoint-dir",
-        help="Location of AIGCcode checkpoint.",
+        help="Location of AIGCode checkpoint.",
     )
 
     parser.add_argument(

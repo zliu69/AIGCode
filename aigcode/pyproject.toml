@@ -1,9 +1,9 @@
 [project]
 name = "aigcode"
 version = "0.0.1"
-description = "Lightweight AIGCcode"
+description = "Lightweight AIGCode"
 authors = [
-    {name = "Akshita Bhagia", email = "akshitab@allenai.org" }
+    {name = "Zimo Liu", email = "liuzimo@aigcode.net" }
 ]
 license = {text = "Apache-2.0"}
 readme = "README.md"

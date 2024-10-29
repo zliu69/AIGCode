@@ -28,11 +28,11 @@ from rich.traceback import Traceback
 
 from .aliases import PathOrStr
 from .exceptions import (
-    AIGCcodeCliError,
-    AIGCcodeEnvironmentError,
-    AIGCcodeError,
-    AIGCcodeNetworkError,
-    AIGCcodeThreadError,
+    AIGCodeCliError,
+    AIGCodeEnvironmentError,
+    AIGCodeError,
+    AIGCodeNetworkError,
+    AIGCodeThreadError,
 )
 from .torch_util import (
     barrier,
@@ -107,7 +107,7 @@ def setup_logging(log_filter_type: LogFilterType = LogFilterType.rank0_only) -> 
 
     handler: logging.Handler
     if (
-        os.environ.get("AIGCcode_NONINTERACTIVE", False)
+        os.environ.get("AIGCode_NONINTERACTIVE", False)
         or os.environ.get("DEBIAN_FRONTEND", None) == "noninteractive"
         or not sys.stdout.isatty()
     ):
@@ -160,9 +160,9 @@ def excepthook(exctype, value, traceback):
     """
     if issubclass(exctype, KeyboardInterrupt):
         sys.__excepthook__(exctype, value, traceback)
-    elif issubclass(exctype, AIGCcodeCliError):
+    elif issubclass(exctype, AIGCodeCliError):
         rich.get_console().print(f"[yellow]{value}[/]", highlight=False)
-    elif issubclass(exctype, AIGCcodeError):
+    elif issubclass(exctype, AIGCodeError):
         rich.get_console().print(Text(f"{exctype.__name__}:", style="red"), value, highlight=False)
     else:
         log.critical("Uncaught %s: %s", exctype.__name__, value, exc_info=(exctype, value, traceback))
@@ -466,7 +466,7 @@ def _get_s3_profile_name(scheme: str) -> Optional[str]:
     if scheme == "r2":
         profile_name = os.environ.get("R2_PROFILE")
         if profile_name is None:
-            raise AIGCcodeEnvironmentError(
+            raise AIGCodeEnvironmentError(
                 "R2 profile name is not set. Did you forget to set the 'R2_PROFILE' env var?"
             )
 
@@ -474,7 +474,7 @@ def _get_s3_profile_name(scheme: str) -> Optional[str]:
     if scheme == "weka":
         profile_name = os.environ.get("WEKA_PROFILE")
         if profile_name is None:
-            raise AIGCcodeEnvironmentError(
+            raise AIGCodeEnvironmentError(
                 "Weka profile name is not set. Did you forget to set the 'WEKA_PROFILE' env var?"
             )
 
@@ -489,7 +489,7 @@ def _get_s3_endpoint_url(scheme: str) -> Optional[str]:
     if scheme == "r2":
         r2_endpoint_url = os.environ.get("R2_ENDPOINT_URL")
         if r2_endpoint_url is None:
-            raise AIGCcodeEnvironmentError(
+            raise AIGCodeEnvironmentError(
                 "R2 endpoint url is not set. Did you forget to set the 'R2_ENDPOINT_URL' env var?"
             )
 
@@ -497,7 +497,7 @@ def _get_s3_endpoint_url(scheme: str) -> Optional[str]:
     if scheme == "weka":
         weka_endpoint_url = os.environ.get("WEKA_ENDPOINT_URL")
         if weka_endpoint_url is None:
-            raise AIGCcodeEnvironmentError(
+            raise AIGCodeEnvironmentError(
                 "Weka endpoint url is not set. Did you forget to set the 'WEKA_ENDPOINT_URL' env var?"
             )
 
@@ -543,12 +543,12 @@ def _s3_upload(
                 _wait_before_retry(attempt)
 
         if err is not None:
-            raise AIGCcodeNetworkError(f"Failed to check object existence during {scheme} upload") from err
+            raise AIGCodeNetworkError(f"Failed to check object existence during {scheme} upload") from err
 
     try:
         _get_s3_client(scheme).upload_file(source, bucket_name, key)
     except boto_exceptions.ClientError as e:
-        raise AIGCcodeNetworkError(f"Failed to upload to {scheme}") from e
+        raise AIGCodeNetworkError(f"Failed to upload to {scheme}") from e
 
 
 def _s3_file_size(scheme: str, bucket_name: str, key: str, max_attempts: int = 3) -> int:
@@ -565,7 +565,7 @@ def _s3_file_size(scheme: str, bucket_name: str, key: str, max_attempts: int = 3
             log.warning("%s failed attempt %d with retriable error: %s", _s3_file_size.__name__, attempt, err)
             _wait_before_retry(attempt)
 
-    raise AIGCcodeNetworkError(f"Failed to get {scheme} file size") from err
+    raise AIGCodeNetworkError(f"Failed to get {scheme} file size") from err
 
 
 def _s3_get_bytes_range(
@@ -604,7 +604,7 @@ def _s3_get_bytes_range(
     # This can cause an irrelevant exception (e.g. KeyError: 'error'), resulting
     # in us losing the true exception info. To avoid this, we change the exception
     # to a type that has a single-parameter constructor.
-    raise AIGCcodeNetworkError(f"Failed to get bytes range from {scheme}") from err
+    raise AIGCodeNetworkError(f"Failed to get bytes range from {scheme}") from err
 
 
 def _s3_find_latest_checkpoint(scheme: str, bucket_name: str, prefix: str) -> Optional[str]:
@@ -747,7 +747,7 @@ def threaded_generator(g, maxsize: int = 16, thread_name: Optional[str] = None):
 
     for x in iter(q.get, sentinel):
         if isinstance(x, Exception):
-            raise AIGCcodeThreadError(f"generator thread {thread_name} failed") from x
+            raise AIGCodeThreadError(f"generator thread {thread_name} failed") from x
         else:
             yield x
 

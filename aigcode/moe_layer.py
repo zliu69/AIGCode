@@ -24,24 +24,9 @@ from .torch_util import(
 )
 import torch.distributed as dist
 from .initialization import init_normal
-# from .components.activations import Activation
 from .top2gate import Top2Gate
 from .top1gate import Top1Gate
-# from fairseq import distributed_utils
 
-# if TYPE_CHECKING:
-#     Base = Module[Tensor]
-# else:
-#     Base = Module
-
-# try:
-#     # To enable Tutel MoE optimizations:
-#     #   python3 -m pip install --user --upgrade git+https://github.com/microsoft/tutel@v0.1.x
-#     from tutel import moe as tutel_moe
-
-#     has_tutel, fused_cumsum_sub_one = True, tutel_moe.fast_cumsum_sub_one
-# except ModuleNotFoundError:
-#     has_tutel, fused_cumsum_sub_one = False, lambda mask: torch.cumsum(mask, dim=0) - 1
 class Activation(nn.Module):
     def __init__(self, config: ModelConfig):
         super().__init__()
@@ -113,9 +98,6 @@ class _AllToAll(torch.autograd.Function):
 # einsum dimensions: (g)roup, (s)equence, (e)xpert, (m)odel, (c)apacity
 # See https://arxiv.org/pdf/2006.16668.pdf for details.
 def get_global_rank():
-    # if use_xla():
-    #     return new_groups([list(range(get_global_world_size()))])
-    # el
     if torch.distributed.is_initialized():
         return torch.distributed.get_rank()
     else:
@@ -154,7 +136,6 @@ class FeedForwardNetwork(nn.Module):
             init_weights(
                 self.config, self.gate_proj, d=self.hidden_size, layer_id=None, type_of_module=ModuleType.in_module
             )
-            # print("gpu:{}, random_test: {}".format(get_global_rank(), self.gate_proj.weight))
             init_weights(
                 self.config, self.down_proj, d=int(self.act.output_multiplier * self.intermediate_size), layer_id=None, type_of_module=ModuleType.in_module
             )
@@ -222,7 +203,6 @@ class MOELayer(Module):
             self.args.intermediate_size if self.args.intermediate_size > 0 else self.args.mlp_ratio * self.args.d_model
         )
         if self.args.gate_level == "sample":
-            # self.max_sequence_length = self.args.max_sequence_length
             if gate is not None and experts is not None:
                 self.gate = gate
                 if type(experts) == ModuleList:
@@ -324,9 +304,8 @@ class MOELayer(Module):
     def forward(self, *input: Tensor, input_padding_mask=None, train_meta_data=None, moe_idx=None, **kwargs: Any) -> Tensor:
         moe_start_time = time.time() * 1000
         meta_data = None
-        # print("gpu: {}, block_id: {}, att_time: {}".format(get_global_rank(), block_idx, att_time - block_start_time))
         if  self.args.gate_level == "sample":
-            # assert len(input) == 1, "only single input Tensor supported"
+            
             input = input[0]
 
             assert len(input.shape) == 3, "input Tensor must have dimensions: (s)equence, (t)oken, (m)odel"
@@ -334,24 +313,9 @@ class MOELayer(Module):
                 assert len(input_padding_mask.shape) == 2, "input Tensor must have dimensions: (s)equence, (t)oken"
                 assert input_padding_mask.shape[0] == input.shape[0]
                 assert input_padding_mask.shape[1] == input.shape[1]
-            # assert input.shape[0] % len(self.experts) == 0, "num tokens must be order of number of local experts"
-
-            # Implement Algorithm 2 from GShard paper.
             d_model = input.shape[2]
-            # Pad to expected batch size
-            # input_shape = list(input.shape)
-
-            # Reshape into S tokens by dropping sequence dimension.
-            # reshaped_input = input.reshape(input_shape[0], input_shape[1] * input_shape[2])
-            # print(f"moe input reshaped: type {type(reshaped_input).__name__}, shape {reshaped_input.shape}")
-            # reshaped_input_shape = reshaped_input.shape
-            # reshaped_input_padding_mask = input_padding_mask.reshape(-1) if input_padding_mask is not None else None
-
             l_aux, top_k_weights, top_k_indices, meta_data = self.gate(input, None, train_meta_data, moe_idx)
-            # if get_global_rank() == 0:
-            #     gate_time = time.time() * 1000
-            #     print("gpu: {}, gate_time: {}".format(get_global_rank(), gate_time - moe_start_time))
-        
+            
             B, S = input.shape[0], input.shape[1]
             
             if self.args.moe_gate_input_type == "stack":
@@ -362,7 +326,7 @@ class MOELayer(Module):
                 results_all = []
                 for chunk, weights, indices in zip(chunks,top_k_weights_chunks,top_k_indices_chunks):
                     res = []
-                    # print(indices.shape)
+                    
                     for indx in range(indices.size(-1) + self.args.moe_share_expert_count):
                         if indx < indices.size(-1):
                             exp = self.experts[indices[-1][indx].item()]
@@ -371,11 +335,10 @@ class MOELayer(Module):
                             exp = self.experts[self.args.moe_expert_count + indx - indices.size(-1)]
                             output = exp(chunk)
                         res.append(output)
-                        # print(res)
-                        # print(torch.stack(res,dim=-1))
+                        
                     results_all.append(torch.stack(res,dim=-1).sum(-1).squeeze(0))
 
-                # return torch.stack(results).sum(dim=0)
+
                 experts_output = torch.stack(results_all, dim=0) # (B, S, M) 
             
             else:
@@ -383,10 +346,6 @@ class MOELayer(Module):
                     B_sample = B * self.args.gate_sample_ratio
                 else:
                     B_sample = B
-                # S_D = input_shape[1] * input_shape.size[2]
-                # if self.args.moe_share_expert_count > 0:
-                #     top_k_weights = F.pad(top_k_weights, (0, self.args.moe_share_expert_count), "constant", 1.0)
-                    # top_k_indices = F.pad(top_k_indices, (0, self.args.moe_share_expert_count), "constant", 1)
                 chunks = input.reshape(B_sample, int(S/int(B_sample/B)), d_model).chunk(B_sample, dim=0)
                 top_k_weights_chunks = top_k_weights.chunk(B_sample, dim=0)
                 top_k_indices_chunks = top_k_indices.chunk(B_sample, dim=0)
@@ -394,7 +353,7 @@ class MOELayer(Module):
                 results_all = []
                 for chunk, weights, indices in zip(chunks,top_k_weights_chunks,top_k_indices_chunks):
                     res = []
-                    # print(indices.shape)
+    
                     for indx in range(indices.size(-1) + self.args.moe_share_expert_count):
                         if indx < indices.size(-1):
                             exp = self.experts[indices[-1][indx].item()]
@@ -403,138 +362,53 @@ class MOELayer(Module):
                             exp = self.experts[self.args.moe_expert_count + indx - indices.size(-1)]
                             output = exp(chunk)
                         res.append(output)
-                        # print(res)
-                        # print(torch.stack(res,dim=-1))
+                        
                     results_all.append(torch.stack(res,dim=-1).sum(-1).squeeze(0))
-                # print("res len:{}\n".format(len(results_all)))
-                # return torch.stack(results).sum(dim=0)
+                
                 experts_output = torch.stack(results_all, dim=0).reshape(B, S, d_model) # (B, S, M) 
-            # if get_global_rank() == 0:
-            #     all_exp_time = time.time() * 1000
-            #     print("gpu: {}, all_exp_time: {}".format(get_global_rank(), all_exp_time - gate_time))
-            # combined_output = (experts_output * combine_weights.unsqueeze(-1)).sum(dim=1) # (S, E, M) * (S, E, 1) ->( S, M)
-
-            # combined_output = combined_output.reshape(input.shape)
-
-
+            
             return experts_output, l_aux, meta_data
-            
-            
-            
-            # chunks = input.chunk(B, dim=0)
-            # top_k_weights_chunks = top_k_weights.chunk(B, dim=0)
-            # top_k_indices_chunks = top_k_indices.chunk(B, dim=0)
-
-            # results_all = []
-            # for chunk, weights, indices in zip(chunks,top_k_weights_chunks,top_k_indices_chunks):
-            #     res = []
-            #     # print(indices.shape)
-            #     for indx in range(indices.size(-1) + self.args.moe_share_expert_count):
-            #         if indx < indices.size(-1):
-            #             exp = self.experts[indices[-1][indx].item()]
-            #             output = exp(chunk) * weights[-1][indx]
-            #         else:
-            #             exp = self.experts[self.args.moe_expert_count + indx - indices.size(-1)]
-            #             output = exp(chunk)
-            #         res.append(output)
-            #         # print(res)
-            #         # print(torch.stack(res,dim=-1))
-            #     results_all.append(torch.stack(res,dim=-1).sum(-1).squeeze(0))
-
-            # # return torch.stack(results).sum(dim=0)
-            # experts_output = torch.stack(results_all, dim=0) # (B, S, M) 
-            # # if get_global_rank() == 0:
-            # #     all_exp_time = time.time() * 1000
-            # #     print("gpu: {}, all_exp_time: {}".format(get_global_rank(), all_exp_time - gate_time))
-            # # combined_output = (experts_output * combine_weights.unsqueeze(-1)).sum(dim=1) # (S, E, M) * (S, E, 1) ->( S, M)
-
-            # # combined_output = combined_output.reshape(input.shape)
-
-
-            # return experts_output, l_aux, meta_data
 
         elif not self.args.gshard:
-            # assert len(input) == 1, "only single input Tensor supported"
-            # print(input)
-            # print("input type : {}".format(type(input)))
-            # print("input type0 : {}".format(type(input[0])))
-            # print("input len : {}".format(len(input)))
-            # print("input len0 : {}".format(len(input[0])))
-            # print("moe input size: {}\n".format(input.shape))
             input = input[0] # exclude meta data
-            # print("moe input size after: {}\n".format(input.shape))
-
-            # print(input)
-            # print(f"moe input: type {type(input).__name__}, shape {input.shape}")
             assert len(input.shape) == 3, "input Tensor must have dimensions: (s)equence, (t)oken, (m)odel"
             if input_padding_mask is not None:
                 assert len(input_padding_mask.shape) == 2, "input Tensor must have dimensions: (s)equence, (t)oken"
                 assert input_padding_mask.shape[0] == input.shape[0]
                 assert input_padding_mask.shape[1] == input.shape[1]
-            # assert input.shape[0] % len(self.experts) == 0, "num tokens must be order of number of local experts"
-
-            # Implement Algorithm 2 from GShard paper.
             d_model = input.shape[2]
             # Pad to expected batch size
             input_shape = list(input.shape)
 
             # Reshape into S tokens by dropping sequence dimension.
             reshaped_input = input.reshape(-1, d_model)
-            # print(f"moe input reshaped: type {type(reshaped_input).__name__}, shape {reshaped_input.shape}")
             reshaped_input_shape = reshaped_input.shape
             reshaped_input_padding_mask = input_padding_mask.reshape(-1) if input_padding_mask is not None else None
                             
             l_aux, combine_weights, combine_mask, meta_data = self.gate(reshaped_input, reshaped_input_padding_mask)
-            # if get_global_rank() == 0:
-            #     gate_time = time.time() * 1000
-            #     print("gpu: {}, gate_time: {}".format(get_global_rank(), gate_time - moe_start_time))
-        
             S, M = reshaped_input.size(0), reshaped_input.size(1)
             if self.args.moe_share_expert_count > 0:
                 combine_weights = F.pad(combine_weights, (0, 0, 0, self.args.moe_share_expert_count), "constant", 1.0)
 
-            # if self.args.moe_share_expert_count > 0:
-            #     combine_weights = F.pad(combine_weights, (0, self.args.moe_share_expert_count), "constant", 1.0)
-            #     combine_mask = F.pad(combine_mask, (0, self.args.moe_share_expert_count), "constant", 1)
-            # dispatched_input = torch.bmm(combine_mask.unsqueeze(-1).to(reshaped_input.dtype), reshaped_input.unsqueeze(1)) # S, E+shareE, M
-            # # print(f"moe dispatched_input: type {type(dispatched_input).__name__}, shape {dispatched_input.shape}")
-            # chunks = dispatched_input.chunk(self.num_local_experts, dim=1)
             results = []
             chunks = combine_weights.chunk(len(self.experts), dim=0)
-            # for chunk, model in zip(chunks, self.experts):
-            #     # print(f"moe chunk: type {type(chunk).__name__}, shape {chunk.shape}")
-
-            #     results.append(model(chunk.squeeze(1)))
-
-            # return torch.stack(results).sum(dim=0)
             for model, chunk in zip(self.experts, chunks) :
                 results.append(model(reshaped_input) * chunk.permute(1, 0))
             
             experts_output = torch.stack(results, dim=-1).sum(-1)   # (S, M) 
-            # experts_output = torch.stack(results, dim=1) # (S, E+shareE, M) 
-            # if get_global_rank() == 0:
-            #     all_exp_time = time.time() * 1000
-            #     print("gpu: {}, all_exp_time: {}".format(get_global_rank(), all_exp_time - gate_time))
-            # combined_output = (experts_output * combine_weights.unsqueeze(-1)).sum(dim=1) # (S, E, M) * (S, E, 1) ->( S, M)
-
             combined_output = experts_output.reshape(input.shape)
 
 
             return combined_output, l_aux, meta_data
 
         else:
-            # assert len(input) == 1, "only single input Tensor supported"
-            # print("moe input size: {}\n".format(input.shape))
             input = input[0] # exclude meta data
-            # print("moe input size after: {}\n".format(input.shape))
             assert len(input.shape) == 3, "input Tensor must have dimensions: (s)equence, (t)oken, (m)odel"
             if input_padding_mask is not None:
                 assert len(input_padding_mask.shape) == 2, "input Tensor must have dimensions: (s)equence, (t)oken"
                 assert input_padding_mask.shape[0] == input.shape[0]
                 assert input_padding_mask.shape[1] == input.shape[1]
-            # assert input.shape[0] % len(self.experts) == 0, "num tokens must be order of number of local experts"
-
-            # Implement Algorithm 2 from GShard paper.
+            
             d_model = input.shape[2]
             # Pad to expected batch size
             input_shape = list(input.shape)
@@ -594,11 +468,6 @@ class MOELayer(Module):
 
             
             l_aux, combine_weights, dispatch_mask = self.gate(reshaped_input, reshaped_input_padding_mask)
-            # if get_global_rank() == 0:
-            #     gate_time = time.time() * 1000
-            #     print("gpu: {}, gate_time: {}".format(get_global_rank(), gate_time - moe_start_time))
-        
-
             dispatch_mask = dispatch_mask.to(input.dtype).permute(1, 2, 0)  # S,E,C -> E,C,S
             E, C, S = dispatch_mask.size()
             M = reshaped_input.size(1)
@@ -622,23 +491,13 @@ class MOELayer(Module):
 
             # Re-shape back: gecm -> ecm
             expert_output = expert_output.reshape(self.all2all_size * self.num_local_experts, -1, d_model)
-            # if get_global_rank() == 0:
-            #     all_exp_time = time.time() * 1000
-            #     print("gpu: {}, all_exp_time: {}".format(get_global_rank(), all_exp_time - gate_time))
             
-
-            # if has_tutel:
-            #     combined_output = self._tutel_dispatcher.decode(expert_output.view(E*C, M))
-            # else:
-                # einsum("sec,ecm->sm")
             combined_output = combine_weights.view(S, E*C).mm(expert_output.view(E*C, M))
 
             # Remove padding here when --max-tokens is specified and not --batch-size or --max-sentences
             combined_output = combined_output[:reshaped_input_shape[0], :]
             combined_output = combined_output.reshape(input.shape)
             combined_output = combined_output[:input_shape[0], :, :]
-
-            # self.record_all_to_all_stats()
 
             return combined_output, l_aux, meta_data
 
@@ -648,13 +507,8 @@ class MOELayer(Module):
         if not self.reset_params:
             for expert in self.experts:
                 expert.reset_parameters()
-            # init_weights(
-            #     self.args, self.gate.wg, d=self.args.d_model, layer_id=None, type_of_module=ModuleType.in_module
-            # )
-            # std = 1.0 / math.sqrt(self.args.d_model)
-            # torch.nn.init.trunc_normal_(self.gate.wg.weight, mean=0.0, std=std, a=-3 * std, b=3 * std)
             self.gate.reset_parameters()
-            # torch.nn.init.xavier_normal_(self.gate.wg.weight)
+            
             self.reset_params = True
 
     def prepare_for_inference_(self):
@@ -666,29 +520,5 @@ class MOELayer(Module):
             input = input.contiguous()
             output = input.detach().clone()
             return input
-        # always record times, since it is not a lot of overhead
-        # if we do not log it we simply clear it off in record_all_to_all_stats
-        # cuda_start = torch.cuda.Event(enable_timing=True)
-        # cuda_end = torch.cuda.Event(enable_timing=True)
-        # cpu_start = time.time() * 1000
-        # cuda_start.record()
         output = _AllToAll.apply(self.all2all_group, input)
-        # cuda_end.record()
-        # cpu_end = time.time() * 1000
-        # self.a2a_cpu_time_ms += (cpu_end - cpu_start)
-        # self.a2a_cuda_event_intervals.append((cuda_start, cuda_end))
         return output
-
-    # def record_all_to_all_stats(self):
-    #     # controlled via an argument as we want to minimize any impact from torch.cuda.synchronize()
-    #     record_a2a_perf_stats = getattr(self.args, 'record_a2a_perf_stats', False)
-    #     if record_a2a_perf_stats:
-    #         torch.cuda.synchronize()
-    #         self.metadata["all_to_all_cpu_time_ms"] = self.a2a_cpu_time_ms
-    #         a2a_cuda_time_ms = 0.0
-    #         for ev_start, ev_end in self.a2a_cuda_event_intervals:
-    #             a2a_cuda_time_ms += ev_start.elapsed_time(ev_end)
-    #         self.metadata["all_to_all_cuda_time_ms"] = a2a_cuda_time_ms
-    #     # reset stats
-    #     self.a2a_cpu_time_ms = 0.0
-    #     self.a2a_cuda_event_intervals = []

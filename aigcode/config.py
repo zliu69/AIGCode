@@ -24,7 +24,7 @@ from omegaconf.errors import OmegaConfBaseException
 from torch.distributed.fsdp import MixedPrecision, ShardingStrategy
 
 from .aliases import PathOrStr
-from .exceptions import AIGCcodeConfigurationError
+from .exceptions import AIGCodeConfigurationError
 from .util import StrEnum
 
 __all__ = [
@@ -120,7 +120,7 @@ class BaseConfig:
                 conf = om.merge(conf, kwargs)
             return cast(C, om.to_object(conf))
         except OmegaConfBaseException as e:
-            raise AIGCcodeConfigurationError(str(e))
+            raise AIGCodeConfigurationError(str(e))
 
     @classmethod
     def load(
@@ -143,7 +143,7 @@ class BaseConfig:
                 conf = om.merge(conf, om.from_dotlist(overrides))
             return cast(C, om.to_object(conf))
         except OmegaConfBaseException as e:
-            raise AIGCcodeConfigurationError(str(e))
+            raise AIGCodeConfigurationError(str(e))
 
     def save(self, path: PathOrStr) -> None:
         """Save to a YAML file."""
@@ -226,7 +226,7 @@ class InitFnType(StrEnum):
 @dataclass
 class ModelConfig(BaseConfig):
     """
-    AIGCcode (model) configuration.
+    AIGCode (model) configuration.
     """
 
     # Note that the defaults for these attributes are equivalent to the base GPT2 model.
@@ -509,7 +509,7 @@ class ModelConfig(BaseConfig):
             if self.n_kv_heads == n_kv_heads_should_be:
                 return n_kv_heads_should_be
             else:
-                raise AIGCcodeConfigurationError(
+                raise AIGCodeConfigurationError(
                     "You can't set `multi_query_attention` and `n_kv_heads` at the same time."
                 )
 
@@ -710,12 +710,12 @@ class CompilerConfig(BaseConfig):
 class DistributedStrategy(StrEnum):
     ddp = "ddp"
     """
-    Wrap AIGCcode in torch.nn.parallel.DistributedDataParallel to train across ranks.
+    Wrap AIGCode in torch.nn.parallel.DistributedDataParallel to train across ranks.
     """
 
     fsdp = "fsdp"
     """
-    Wrap AIGCcode in torch.distributed.fsdp.FullyShardedDataParallel to train across ranks.
+    Wrap AIGCode in torch.distributed.fsdp.FullyShardedDataParallel to train across ranks.
     """
 
 
@@ -760,7 +760,7 @@ class DDPConfig(BaseConfig):
 class FSDPWrapStrategy(StrEnum):
     by_block = "by_block"
     """
-    Wrap each AIGCcode block with its own FSDP instance.
+    Wrap each AIGCode block with its own FSDP instance.
     """
 
     by_block_and_size = "by_block_and_size"
@@ -883,7 +883,7 @@ class ActivationCheckpointingStrategy(StrEnum):
 @dataclass
 class TrainConfig(BaseConfig):
     """
-    AIGCcode training configuration.
+    AIGCode training configuration.
     """
 
     run_name: Optional[str] = None
@@ -913,7 +913,7 @@ class TrainConfig(BaseConfig):
 
     model: ModelConfig = field(default_factory=ModelConfig)
     """
-    AIGCcode Model configuration.
+    AIGCode Model configuration.
     """
 
     optimizer: OptimizerConfig = field(default_factory=OptimizerConfig)
@@ -1154,7 +1154,7 @@ class TrainConfig(BaseConfig):
 
     distributed_strategy: Optional[DistributedStrategy] = None
     """
-    Distributed strategy for AIGCcode model (eg. single GPU, DDP, FSDP).
+    Distributed strategy for AIGCode model (eg. single GPU, DDP, FSDP).
     """
 
     fsdp: Optional[FSDPConfig] = field(default_factory=FSDPConfig)

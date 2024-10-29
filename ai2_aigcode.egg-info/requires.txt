@@ -1,6 +1,5 @@
 numpy
 torch<2.3,>=2.1
-ai2-aigcode-core==0.1.0
 omegaconf
 rich
 boto3

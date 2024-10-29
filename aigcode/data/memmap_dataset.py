@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-from aigcode.exceptions import AIGCcodeEnvironmentError
+from aigcode.exceptions import AIGCodeEnvironmentError
 
 from ..aliases import PathOrStr
 from ..config import InstanceFilterConfig
@@ -94,23 +94,17 @@ class MemMapDataset(Dataset[Dict[str, Any]]):
 
     @property
     def offsets(self) -> List[Tuple[int, int]]:
-        # try:
-            # Create the global S3 client up front to work around a threading issue in boto.
         _get_s3_client("s3")
-        # except AIGCcodeEnvironmentError:
-        #     # R2 might not be needed, so ignore this error. We will get an error
-        #     # later if R2 is needed.
-        #     pass
 
         try:
             _get_s3_client("r2")
-        except AIGCcodeEnvironmentError:
+        except AIGCodeEnvironmentError:
             # R2 might not be needed, so ignore this error. We will get an error
             # later if R2 is needed.
             pass
         try:
             _get_s3_client("weka")
-        except AIGCcodeEnvironmentError:
+        except AIGCodeEnvironmentError:
             # Weka might not be needed, so ignore this error. We will get an error
             # later if Weka is needed.
             pass
@@ -199,11 +193,6 @@ class MemMapDataset(Dataset[Dict[str, Any]]):
         if self.instance_filter_config is not None:
             out["instance_mask"] = self._validate_instance(input_ids)
 
-        # if self._label_mask_paths is not None:
-        #     label_mask = self._read_chunk_from_memmap(
-        #         self._label_mask_paths[memmap_index], memmap_local_index, dtype=np.bool_
-        #     )
-        #     out["label_mask"] = label_mask
         if self._label_mask_paths is not None and memmap_index < len(self._label_mask_paths):
             label_mask = self._read_chunk_from_memmap(
                 self._label_mask_paths[memmap_index], memmap_local_index, dtype=np.bool_

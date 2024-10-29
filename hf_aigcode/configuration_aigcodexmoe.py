@@ -1,5 +1,5 @@
 """
-AIGCcodeXMoE configuration
+AIGCodeXMoE configuration
 """
 
 from transformers import AutoConfig, PretrainedConfig
@@ -11,7 +11,7 @@ logger = logging.get_logger(__name__)
 
 # 240905: seems done, to be tested
 
-class AIGCcodeXMoEConfig(PretrainedConfig):
+class AIGCodeXMoEConfig(PretrainedConfig):
     model_type = "hf_aigcodexmoe"
     keys_to_ignore_at_inference = ["past_key_values"]  # TODO: confirm
 
@@ -21,7 +21,7 @@ class AIGCcodeXMoEConfig(PretrainedConfig):
         all_kwargs.update(kwargs)
         all_kwargs.update({"use_cache": use_cache})
         all_kwargs.update(
-            {"architectures": all_kwargs.get("architectures", ["AIGCcodeXMoEForCausalLM"]) or ["AIGCcodeXMoEForCausalLM"]}
+            {"architectures": all_kwargs.get("architectures", ["AIGCodeXMoEForCausalLM"]) or ["AIGCodeXMoEForCausalLM"]}
         )
         super().__init__(**all_kwargs)
 
@@ -36,9 +36,5 @@ class AIGCcodeXMoEConfig(PretrainedConfig):
     @property
     def hidden_size(self):
         return self.d_model
-
-
-# Register the config class so that it is available for transformer pipelines, auto-loading etc.
-# AIGCcodeXMoE is integrated directly in transformers from v4.40.0 onwards, but the version in transformers
-# may not support the newest architectures we create.
-AutoConfig.register("hf_aigcodexmoe", AIGCcodeXMoEConfig)
+    
+AutoConfig.register("hf_aigcodexmoe", AIGCodeXMoEConfig)

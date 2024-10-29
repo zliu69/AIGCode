@@ -43,7 +43,7 @@ from .config import (
     LayerNormType,
     ModelConfig,
 )
-from .exceptions import AIGCcodeConfigurationError
+from .exceptions import AIGCodeConfigurationError
 from .initialization import init_normal
 from .torch_util import ensure_finite_
 from .top2gate import Top2Gate
@@ -65,11 +65,11 @@ __all__ = [
     "GELU",
     "ReLU",
     "SwiGLU",
-    "AIGCcodeBlock",
-    "AIGCcodeSequentialBlock",
-    "AIGCcode",
-    "AIGCcodeOutput",
-    "AIGCcodeGenerateOutput",
+    "AIGCodeBlock",
+    "AIGCodeSequentialBlock",
+    "AIGCode",
+    "AIGCodeOutput",
+    "AIGCodeGenerateOutput",
 ]
 
 
@@ -401,7 +401,7 @@ def alibi_attention_bias(seq_len: int, config: ModelConfig, device: torch.device
     return alibi_bias * (1.0 / (2 ** m.view(1, config.n_heads, 1, 1)))  # type: ignore
 
 
-class AIGCcodeBlock(nn.Module):
+class AIGCodeBlock(nn.Module):
     """
     A base class for transformer block implementations.
     """
@@ -649,15 +649,15 @@ class AIGCcodeBlock(nn.Module):
         raise NotImplementedError
 
     @classmethod
-    def build(cls, layer_id: int, config: ModelConfig, cache: BufferCache) -> AIGCcodeBlock:
+    def build(cls, layer_id: int, config: ModelConfig, cache: BufferCache) -> AIGCodeBlock:
         if config.block_type == BlockType.sequential:
-            return AIGCcodeSequentialBlock(layer_id, config, cache)
+            return AIGCodeSequentialBlock(layer_id, config, cache)
         elif config.block_type == BlockType.llama:
-            return AIGCcodeLlamaBlock(layer_id, config, cache)
+            return AIGCodeLlamaBlock(layer_id, config, cache)
         else:
             raise NotImplementedError(f"Unknown block type: '{config.block_type}'")
 
-class AIGCcodeExpert(nn.Module):
+class AIGCodeExpert(nn.Module):
     """
         Feed Forward Network layer in the Transformer model
     """
@@ -717,7 +717,7 @@ class AIGCcodeExpert(nn.Module):
 
             self.reset_params = True
 
-class AIGCcodeSequentialBlock(AIGCcodeBlock):
+class AIGCodeSequentialBlock(AIGCodeBlock):
     """
     This is a typical transformer block where the output is computed as ``MLP(LN(x + Attention(LN(x))))``
     (plus another skip connection).
@@ -776,7 +776,7 @@ class AIGCcodeSequentialBlock(AIGCcodeBlock):
             # expert_list.append(nn.Linear(
             #     self.config.d_model, int(self.hidden_size / self.config.exp_dim_ratio), bias=self.config.include_bias, device=self.config.init_device
             # ))
-            expert_list.append(AIGCcodeExpert(self.config, self.layer_id))
+            expert_list.append(AIGCodeExpert(self.config, self.layer_id))
         experts = nn.ModuleList(expert_list)
         return experts
 
@@ -913,10 +913,10 @@ class AIGCcodeSequentialBlock(AIGCcodeBlock):
         return x, cache, l_aux, metadata
 
 
-class AIGCcodeLlamaBlock(AIGCcodeBlock):
+class AIGCodeLlamaBlock(AIGCodeBlock):
     """
     This is a transformer block where the output is computed as ``MLP(LN(x + Attention(LN(x))))``
-    (plus another skip connection). This block is similar to `AIGCcodeSequentialBlock`
+    (plus another skip connection). This block is similar to `AIGCodeSequentialBlock`
     but some operations have slightly different implementations to imitate the
     behavior of Llama.
     """
@@ -1049,7 +1049,7 @@ class AIGCcodeLlamaBlock(AIGCcodeBlock):
         return x, cache
 
 
-class AIGCcodeOutput(NamedTuple):
+class AIGCodeOutput(NamedTuple):
     logits: torch.FloatTensor
     """
     A tensor of shape `(batch_size, seq_len, vocab_size)` representing the log probabilities
@@ -1077,7 +1077,7 @@ class AIGCcodeOutput(NamedTuple):
     """
 
 
-class AIGCcodeGenerateOutput(NamedTuple):
+class AIGCodeGenerateOutput(NamedTuple):
     token_ids: torch.LongTensor
     """
     The generated token IDs, a tensor of shape `(batch_size, beam_size, max_steps)`.
@@ -1090,7 +1090,7 @@ class AIGCcodeGenerateOutput(NamedTuple):
     """
 
 
-class AIGCcodeBlockGroup(nn.ModuleList):
+class AIGCodeBlockGroup(nn.ModuleList):
     def __init__(self, config: ModelConfig, layer_offset: int, modules: Optional[Iterable[nn.Module]] = None):
         super().__init__(modules)
         self.config = config
@@ -1132,7 +1132,7 @@ class AIGCcodeBlockGroup(nn.ModuleList):
             block.set_activation_checkpointing(strategy)
 
 
-class AIGCcode(nn.Module):
+class AIGCode(nn.Module):
     def __init__(self, config: ModelConfig, init_params: bool = True):
         super().__init__()
         self.config = config
@@ -1140,14 +1140,14 @@ class AIGCcode(nn.Module):
 
         # Validate config.
         if self.config.alibi and self.config.flash_attention:
-            raise AIGCcodeConfigurationError("ALiBi is currently not supported with FlashAttention")
+            raise AIGCodeConfigurationError("ALiBi is currently not supported with FlashAttention")
 
         if self.config.alibi and self.config.rope:
-            raise AIGCcodeConfigurationError("ALiBi and RoPE are mutually exclusive")
+            raise AIGCodeConfigurationError("ALiBi and RoPE are mutually exclusive")
 
         if self.config.embedding_size is not None and self.config.embedding_size != self.config.vocab_size:
             if self.config.embedding_size < self.config.vocab_size:
-                raise AIGCcodeConfigurationError("embedding size should be at least as big as vocab size")
+                raise AIGCodeConfigurationError("embedding size should be at least as big as vocab size")
             elif self.config.embedding_size % 128 != 0:
                 import warnings
 
@@ -1162,7 +1162,7 @@ class AIGCcode(nn.Module):
             0 < self.config.block_group_size <= self.config.n_layers
             and self.config.n_layers % self.config.block_group_size == 0
         ):
-            raise AIGCcodeConfigurationError("n layers must be divisible by block group size")
+            raise AIGCodeConfigurationError("n layers must be divisible by block group size")
 
         torch.backends.cuda.enable_flash_sdp(True)
         torch.backends.cuda.enable_mem_efficient_sdp(False)  # this is super slow so make sure torch won't use it
@@ -1177,10 +1177,10 @@ class AIGCcode(nn.Module):
             )
         )
 
-        blocks = [AIGCcodeBlock.build(i, config, self.__cache) for i in range(config.n_layers)]
+        blocks = [AIGCodeBlock.build(i, config, self.__cache) for i in range(config.n_layers)]
         if self.config.block_group_size > 1:
             block_groups = [
-                AIGCcodeBlockGroup(config, i, blocks[i : i + config.block_group_size])
+                AIGCodeBlockGroup(config, i, blocks[i : i + config.block_group_size])
                 for i in range(0, config.n_layers, config.block_group_size)
             ]
             self.transformer.update({"block_groups": nn.ModuleList(block_groups)})
@@ -1321,7 +1321,7 @@ class AIGCcode(nn.Module):
         use_cache: bool = False,
         last_logits_only: bool = False,
         output_hidden_states: Optional[bool] = None,
-    ) -> AIGCcodeOutput:
+    ) -> AIGCodeOutput:
         """
         :param input_ids: A tensor of shape `(batch_size, seq_len)`.
         :param input_embeddings: A tensor of shape `(batch_size, seq_len, d_model)` with input
@@ -1526,7 +1526,7 @@ class AIGCcode(nn.Module):
         if self.config.scale_logits:
             logits.mul_(1 / math.sqrt(self.config.d_model))
 
-        return AIGCcodeOutput(logits=logits, attn_key_values=attn_key_values, hidden_states=tuple(all_hidden_states) if output_hidden_states else None, l_aux=gate_loss, meta_data=final_meta_data)  # type: ignore[arg-type]
+        return AIGCodeOutput(logits=logits, attn_key_values=attn_key_values, hidden_states=tuple(all_hidden_states) if output_hidden_states else None, l_aux=gate_loss, meta_data=final_meta_data)  # type: ignore[arg-type]
 
     def get_fsdp_wrap_policy(self, wrap_strategy: Optional[FSDPWrapStrategy] = None):
         if wrap_strategy is None:
@@ -1546,8 +1546,8 @@ class AIGCcode(nn.Module):
 
             def fsdp_wrap_fn(module, recurse: bool = True, nonwrapped_numel: int = 0):
                 del nonwrapped_numel
-                wrap = (isinstance(module, AIGCcodeBlock) 
-                or isinstance(module, AIGCcodeExpert) 
+                wrap = (isinstance(module, AIGCodeBlock) 
+                or isinstance(module, AIGCodeExpert) 
                 # or isinstance(module, MOELayer) 
                 # or isinstance(module, MOEV2Layer)
                 # or isinstance(module, MOEV3Layer)
@@ -1558,7 +1558,7 @@ class AIGCcode(nn.Module):
                 # or isinstance(module, ShareLayerMoE) 
                 # or isinstance(module, ShareLayerMLP)
                 )
-                # isinstance(module, AIGCcodeBlock)
+                # isinstance(module, AIGCodeBlock)
                 if recurse:
                     return True
                 else:
@@ -1569,7 +1569,7 @@ class AIGCcode(nn.Module):
 
             def fsdp_wrap_fn(module, recurse: bool = True, nonwrapped_numel: int = 0):
                 del nonwrapped_numel
-                wrap = isinstance(module, (AIGCcodeBlock,)) or module in size_based_module_to_wrap
+                wrap = isinstance(module, (AIGCodeBlock,)) or module in size_based_module_to_wrap
                 if recurse:
                     return True
                 else:
@@ -1578,13 +1578,13 @@ class AIGCcode(nn.Module):
             return fsdp_wrap_fn
         elif wrap_strategy == FSDPWrapStrategy.by_block_group:
             if self.config.block_group_size <= 1:
-                raise AIGCcodeConfigurationError(
+                raise AIGCodeConfigurationError(
                     "'by_block_group' FSDP wrapping strategy requires block group size greater than 1"
                 )
 
             def fsdp_wrap_fn(module, recurse: bool = True, nonwrapped_numel: int = 0):
                 del nonwrapped_numel
-                wrap = isinstance(module, AIGCcodeBlockGroup)
+                wrap = isinstance(module, AIGCodeBlockGroup)
                 if recurse:
                     return True
                 else:
@@ -1593,13 +1593,13 @@ class AIGCcode(nn.Module):
             return fsdp_wrap_fn
         elif wrap_strategy == FSDPWrapStrategy.by_block_group_and_size:
             if self.config.block_group_size <= 1:
-                raise AIGCcodeConfigurationError(
+                raise AIGCodeConfigurationError(
                     "'by_block_group_and_size' FSDP wrapping strategy requires block group size greater than 1"
                 )
 
             def fsdp_wrap_fn(module, recurse: bool = True, nonwrapped_numel: int = 0):
                 del nonwrapped_numel
-                wrap = isinstance(module, (AIGCcodeBlockGroup,)) or module in size_based_module_to_wrap
+                wrap = isinstance(module, (AIGCodeBlockGroup,)) or module in size_based_module_to_wrap
                 if recurse:
                     return True
                 else:
@@ -1625,7 +1625,7 @@ class AIGCcode(nn.Module):
 
             def fsdp_wrap_fn(module, recurse: bool = True, nonwrapped_numel: int = 0):
                 del nonwrapped_numel
-                wrap = isinstance(module, AIGCcodeBlock) and module.layer_id % c == 0
+                wrap = isinstance(module, AIGCodeBlock) and module.layer_id % c == 0
                 if recurse:
                     return True
                 else:
@@ -1688,7 +1688,7 @@ class AIGCcode(nn.Module):
         min_steps: Optional[int] = None,
         final_sequence_scorer: Optional[FinalSequenceScorer] = None,
         constraints: Optional[List[Constraint]] = None,
-    ) -> AIGCcodeGenerateOutput:
+    ) -> AIGCodeGenerateOutput:
         """
         Generate token IDs using beam search.
 
@@ -1798,7 +1798,7 @@ class AIGCcode(nn.Module):
         with torch.no_grad():
             token_ids, scores = beam_search.search(initial_preds, state, step)
 
-        return AIGCcodeGenerateOutput(
+        return AIGCodeGenerateOutput(
             token_ids=token_ids,  # type: ignore[arg-type]
             scores=scores,  # type: ignore[arg-type]
         )
@@ -1806,9 +1806,9 @@ class AIGCcode(nn.Module):
     @classmethod
     def from_checkpoint(
         cls, checkpoint_dir: PathOrStr, device: str = "cpu", checkpoint_type: Optional[CheckpointType] = None
-    ) -> AIGCcode:
+    ) -> AIGCode:
         """
-        Load an AIGCcode model from a checkpoint.
+        Load an AIGCode model from a checkpoint.
         """
         from .util import resource_path
 
@@ -1829,7 +1829,7 @@ class AIGCcode(nn.Module):
         if checkpoint_type == CheckpointType.unsharded:
             # Initialize model (always on CPU to start with so we don't run out of GPU memory).
             model_config.init_device = "cpu"
-            model = AIGCcode(model_config)
+            model = AIGCode(model_config)
 
             # Load state dict directly to target device.
             state_dict_path = resource_path(checkpoint_dir, "model.pt")
@@ -1842,7 +1842,7 @@ class AIGCcode(nn.Module):
             # Initialize model on target device. In this case the state dict is loaded in-place
             # so it's not necessary to start on CPU if the target device is a GPU.
             model_config.init_device = device
-            model = AIGCcode(model_config)
+            model = AIGCode(model_config)
 
             # Load state dict in place.
             load_model_state(checkpoint_dir, model)

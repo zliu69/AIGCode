@@ -6,12 +6,8 @@ import shutil
 import torch
 from omegaconf import OmegaConf as om
 
-from hf_aigcode.configuration_aigcodexmoe import AIGCcodeXMoEConfig
-# from .configuration_aigcodexmoe import AIGCcodeXMoEConfig
-from hf_aigcode.modeling_aigcodexmoe import AIGCcodeXMoEForCausalLM
-# from .modeling_aigcodexmoe import AIGCcodeXMoEForCausalLM
-
-# from hf_aigcodexmoe.tokenization_aigcode_fast import AIGCcodeTokenizerFast
+from hf_aigcode.configuration_aigcodexmoe import AIGCodeXMoEConfig
+from hf_aigcode.modeling_aigcodexmoe import AIGCodeXMoEForCausalLM
 from aigcode import ModelConfig, Tokenizer
 
 logger = logging.getLogger(__name__)
@@ -26,7 +22,7 @@ def write_config(checkpoint_dir: str, to_hf_dir: str):
     model_config = ModelConfig.load(config_path, key="model")
     config_kwargs = model_config.asdict()
     config_kwargs["use_cache"] = True
-    config = AIGCcodeXMoEConfig(**config_kwargs)
+    config = AIGCodeXMoEConfig(**config_kwargs)
 
     logger.info(f"Saving HF-compatible config to {os.path.join(checkpoint_dir, 'config.json')}")
     config.save_pretrained(to_hf_dir)
@@ -41,7 +37,7 @@ def write_model(checkpoint_dir: str, to_hf_dir: str, ignore_aigcode_compatibilit
     new_model_path = os.path.join(to_hf_dir, "pytorch_model.bin")
 
     state_dict = torch.load(old_model_path)
-    new_state_dict = {f"{AIGCcodeXMoEForCausalLM.base_model_prefix}.{key}": val for key, val in state_dict.items()}
+    new_state_dict = {f"{AIGCodeXMoEForCausalLM.base_model_prefix}.{key}": val for key, val in state_dict.items()}
     torch.save(new_state_dict, new_model_path)
 
     if ignore_aigcode_compatibility:
@@ -50,7 +46,7 @@ def write_model(checkpoint_dir: str, to_hf_dir: str, ignore_aigcode_compatibilit
 
 def write_tokenizer(checkpoint_dir: str):
     tokenizer_raw = Tokenizer.from_checkpoint(checkpoint_dir)
-    tokenizer = AIGCcodeXMoETokenizerFast(
+    tokenizer = AIGCodeXMoETokenizerFast(
         tokenizer_object=tokenizer_raw.base_tokenizer,
         truncation=tokenizer_raw.truncate_direction,
         max_length=tokenizer_raw.truncate_to,
@@ -68,7 +64,6 @@ def convert_checkpoint(checkpoint_dir: str, to_hf_dir: str, ignore_aigcode_compa
         os.makedirs(to_hf_dir)
     write_config(checkpoint_dir, to_hf_dir)
     write_model(checkpoint_dir, to_hf_dir, ignore_aigcode_compatibility=ignore_aigcode_compatibility)
-    # write_tokenizer(checkpoint_dir)
 
     # Cannot remove it before writing the tokenizer
     if ignore_aigcode_compatibility:
@@ -98,14 +93,6 @@ def download_remote_checkpoint_and_convert_to_hf(checkpoint_dir: str, local_dir:
     return local_model_path
 
 
-# def fix_bad_tokenizer(checkpoint_dir: str):
-#     path = os.path.join(checkpoint_dir, "config.yaml")
-#     conf = om.load(path)
-#     conf["tokenizer"]["identifier"] = "allenai/gpt-neox-aigcode-dolma-v1_5"
-#     conf["model"]["eos_token_id"] = 50279
-#     om.save(conf, path)
-
-
 def main():
     parser = argparse.ArgumentParser(
         description="Adds a config.json to the checkpoint directory, and creates pytorch_model.bin, "
@@ -114,7 +101,7 @@ def main():
     parser.add_argument(
         "--checkpoint-dir",
         default="/sharedata/aigcode_7b_checkpoints/814/step252000-unsharded",
-        help="Location of AIGCcode checkpoint.",
+        help="Location of AIGCode checkpoint.",
     )
     parser.add_argument(
         "--to-hf-dir",
@@ -131,7 +118,6 @@ def main():
     args = parser.parse_args()
     print("args:{}\n".format(args))
     os.makedirs(args.to_hf_dir, exist_ok=True)
-    # fix_bad_tokenizer(args.checkpoint_dir)
     convert_checkpoint(args.checkpoint_dir, args.to_hf_dir, args.ignore_aigcode_compatibility)
 
 

@@ -1,50 +1,50 @@
 __all__ = [
-    "AIGCcodeError",
-    "AIGCcodeConfigurationError",
-    "AIGCcodeCliError",
-    "AIGCcodeEnvironmentError",
-    "AIGCcodeNetworkError",
-    "AIGCcodeCheckpointError",
+    "AIGCodeError",
+    "AIGCodeConfigurationError",
+    "AIGCodeCliError",
+    "AIGCodeEnvironmentError",
+    "AIGCodeNetworkError",
+    "AIGCodeCheckpointError",
 ]
 
 
-class AIGCcodeError(Exception):
+class AIGCodeError(Exception):
     """
-    Base class for all custom AIGCcode exceptions.
+    Base class for all custom AIGCode exceptions.
     """
 
 
-class AIGCcodeConfigurationError(AIGCcodeError):
+class AIGCodeConfigurationError(AIGCodeError):
     """
     An error with a configuration file.
     """
 
 
-class AIGCcodeCliError(AIGCcodeError):
+class AIGCodeCliError(AIGCodeError):
     """
     An error from incorrect CLI usage.
     """
 
 
-class AIGCcodeEnvironmentError(AIGCcodeError):
+class AIGCodeEnvironmentError(AIGCodeError):
     """
     An error from incorrect environment variables.
     """
 
 
-class AIGCcodeNetworkError(AIGCcodeError):
+class AIGCodeNetworkError(AIGCodeError):
     """
     An error with a network request.
     """
 
 
-class AIGCcodeCheckpointError(AIGCcodeError):
+class AIGCodeCheckpointError(AIGCodeError):
     """
     An error occurred reading or writing from a checkpoint.
     """
 
 
-class AIGCcodeThreadError(Exception):
+class AIGCodeThreadError(Exception):
     """
     Raised when a thread fails.
     """

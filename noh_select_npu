@@ -1,3 +1,0 @@
-dt=`date +%Y%m%d.%H%M`
-logfile=./logs/${1}.${dt}.log
-`nohup sh run_npu_select.sh ${1} ${2} ${3} > ${logfile} 2>&1 &`

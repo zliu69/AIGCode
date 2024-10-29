@@ -1,5 +1,5 @@
 """
-AIGCcode configuration
+AIGCode configuration
 """
 
 from transformers import AutoConfig, PretrainedConfig
@@ -10,7 +10,7 @@ from aigcode.config import ModelConfig
 logger = logging.get_logger(__name__)
 
 
-class AIGCcodeConfig(PretrainedConfig):
+class AIGCodeConfig(PretrainedConfig):
     model_type = "hf_aigcode"
     keys_to_ignore_at_inference = ["past_key_values"]  # TODO: confirm
 
@@ -20,7 +20,7 @@ class AIGCcodeConfig(PretrainedConfig):
         all_kwargs.update(kwargs)
         all_kwargs.update({"use_cache": use_cache})
         all_kwargs.update(
-            {"architectures": all_kwargs.get("architectures", ["AIGCcodeForCausalLM"]) or ["AIGCcodeForCausalLM"]}
+            {"architectures": all_kwargs.get("architectures", ["AIGCodeForCausalLM"]) or ["AIGCodeForCausalLM"]}
         )
         super().__init__(**all_kwargs)
 
@@ -36,8 +36,4 @@ class AIGCcodeConfig(PretrainedConfig):
     def hidden_size(self):
         return self.d_model
 
-
-# Register the config class so that it is available for transformer pipelines, auto-loading etc.
-# AIGCcode is integrated directly in transformers from v4.40.0 onwards, but the version in transformers
-# may not support the newest architectures we create.
-AutoConfig.register("hf_aigcode", AIGCcodeConfig)
+AutoConfig.register("hf_aigcode", AIGCodeConfig)

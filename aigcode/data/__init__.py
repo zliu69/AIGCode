@@ -7,7 +7,7 @@ import random
 
 from ..aliases import PathOrStr
 from ..config import DataConfig, TrainConfig
-from ..exceptions import AIGCcodeConfigurationError
+from ..exceptions import AIGCodeConfigurationError
 from ..torch_util import barrier, get_global_rank, get_world_size, is_distributed
 from .collator import DataCollator
 from .iterable_dataset import IterableDataset
@@ -26,7 +26,7 @@ def build_memmap_dataset(
     label_mask_paths = []
     if data_config.paths:
         if data_config.datasets:
-            raise AIGCcodeConfigurationError("DataConfig.paths is mutually exclusive with DataConfig.datasets")
+            raise AIGCodeConfigurationError("DataConfig.paths is mutually exclusive with DataConfig.datasets")
         paths = data_config.paths
         for path in paths:
             metadata.append({"path": str(path)})
@@ -34,14 +34,12 @@ def build_memmap_dataset(
             if dataset_name not in metadata_paths_stats:
                 metadata_paths_stats[dataset_name] = 0.0
 
-            # data_config.file_count = len(metadata)
-        # if data_config.file_count == 0 and data_config.data_dir != None and len(data_config.data_dir) > 0:
     elif data_config.data_dir != None and len(data_config.data_dir) > 0:
         print("tokens or max_duration(steps):", train_config.max_duration)
         
         for di in data_config.data_dir:
             for dir, data_ratio in di.items():
-            # print("dir and ratio", dir, int(1//data_ratio))
+
                 print("dir: {} \n ratio: {} \n".format(dir, data_ratio))
                 pdir = data_config.data_dir_prefix + "/" + dir 
                 if data_ratio > 1:
@@ -60,22 +58,13 @@ def build_memmap_dataset(
                                 f_lm = f.strip(".npy") + "_label_mask.npy"
                                 if f_lm in files:
                                     label_mask_paths.append(str(os.path.join(root, f_lm)))
-                                # data_config.file_count += 1  
+                              
                 else:
                     for root, dirs, files in os.walk(pdir):
                         fi = 0 
                         for f in files:
                             fi += 1
-                            # if f.endswith(".npy") and fi % int(1 // data_ratio) == 0:
-                            # if f.endswith(".npy") and data_ratio <= 0.5 and fi % int(1 // data_ratio) == 1:
-                            #     fpath = str(os.path.join(root, f)) 
-                            #     metadata.append({"path": fpath})
-                            #     dataset_name = "_".join(fpath.split("/")[-4:-1])
-                            #     if dataset_name not in metadata_paths_stats:
-                            #         metadata_paths_stats[dataset_name] = 0.0
-                            #     paths.append(fpath)
-                            #     # data_config.file_count += 1
-                            # el
+                            
                             if (f.endswith(".npy") and not f.endswith("_label_mask.npy")) and random.random() < data_ratio:
                                 fpath = str(os.path.join(root, f)) 
                                 metadata.append({"path": fpath})
@@ -97,9 +86,8 @@ def build_memmap_dataset(
             paths.extend(label_paths)
             metadata.extend([{"label": label}] * len(label_paths))
     else:
-        raise AIGCcodeConfigurationError("One of DataConfig.paths/DataConfig.data_dir or DataConfig.datasets is required")
+        raise AIGCodeConfigurationError("One of DataConfig.paths/DataConfig.data_dir or DataConfig.datasets is required")
 
-    # print("metadata:{}".format(metadata))
     print("metadata len:{}".format(len(metadata)))
     print("metadata_paths_stats: {}".format(metadata_paths_stats))
     print("label_mask_paths: {}".format(label_mask_paths))
@@ -112,41 +100,9 @@ def build_memmap_dataset(
         include_instance_metadata=include_instance_metadata,
         pad_token_id=train_config.model.pad_token_id,
         generate_attention_mask=data_config.generate_attention_mask,
-        # label_mask_paths=cast(Optional[List[PathOrStr]], data_config.label_mask_paths),
         label_mask_paths=label_mask_paths,
         instance_filter_config=data_config.instance_filter,
     )
-
-# def build_memmap_dataset(
-#     train_config: TrainConfig, data_config: DataConfig, include_instance_metadata: bool = True
-# ) -> MemMapDataset:
-#     paths: List[str]
-#     metadata: List[Dict[str, Any]] = []
-#     if data_config.paths:
-#         if data_config.datasets:
-#             raise AIGCcodeConfigurationError("DataConfig.paths is mutually exclusive with DataConfig.datasets")
-#         paths = data_config.paths
-#         for path in paths:
-#             metadata.append({"path": str(path)})
-#     elif data_config.datasets:
-#         paths = []
-#         for label in sorted(data_config.datasets.keys()):
-#             label_paths = data_config.datasets[label]
-#             paths.extend(label_paths)
-#             metadata.extend([{"label": label}] * len(label_paths))
-#     else:
-#         raise AIGCcodeConfigurationError("One of DataConfig.paths or DataConfig.datasets is required")
-#     return MemMapDataset(
-#         *paths,
-#         chunk_size=train_config.model.max_sequence_length,
-#         memmap_dtype=data_config.effective_memmap_dtype,
-#         metadata=metadata,
-#         include_instance_metadata=include_instance_metadata,
-#         pad_token_id=train_config.model.pad_token_id,
-#         generate_attention_mask=data_config.generate_attention_mask,
-#         label_mask_paths=cast(Optional[List[PathOrStr]], data_config.label_mask_paths),
-#         instance_filter_config=data_config.instance_filter,
-#     )
 
 
 def build_eval_dataloader(
@@ -203,7 +159,7 @@ def build_train_dataloader(
     work_dir = Path(train_config.save_folder) / "train_data"
     if get_global_rank() == 0:
         if work_dir.is_dir() and not train_config.save_overwrite:
-            raise AIGCcodeConfigurationError(
+            raise AIGCodeConfigurationError(
                 "train data working directory already exists, use --save_overwrite to overwrite"
             )
         else:

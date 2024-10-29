@@ -1,4 +1,4 @@
-run_name: aigcode-7B
+run_name: aigcode-7B-sft
 seed: 3477
 dry_run: false
 gpu_type: ascend
@@ -6,8 +6,8 @@ gpu_type: ascend
 # wandb:
 #  entity: aigcode
 #  name: ${run_name}
-#  project: aigcode_pretrain_7B
-#  group: aigcode-7B_v1.0
+#  project: aigcode_sft_7B
+#  group: aigcode-7B-sft_v1.0
 
 model:
   d_model: 4096
@@ -65,7 +65,7 @@ compile: null  # causes instability on AMD GPUs
 
 optimizer:
   name: adamw
-  learning_rate: 3.0e-4
+  learning_rate: 3.0e-5
   weight_decay: 0.1
   betas:
   - 0.9
@@ -73,14 +73,11 @@ optimizer:
   metrics_log_interval: 10
 
 scheduler:
-  name: cosine_with_warmup
-  t_warmup: 5000
-  alpha_f: 0.1
-  grad_clip_warmup_steps: 1000
-  grad_clip_warmup_factor: 10.0
+  name: constant
+
 
 tokenizer:
-  identifier: tokenizers/neo_tokenizer.json
+  identifier: tokenizers/neo_chat_tokenizer.json
   truncate_direction: right
 
 save_folder: ${path.choose:${oc.env:SCRATCH_DIR,no_exist}/checkpoints,/results}/${oc.env:SLURM_JOB_ID,${run_name}}
@@ -92,9 +89,11 @@ save_num_checkpoints_to_keep: 0
 save_interval_unsharded: 5000
 save_num_unsharded_checkpoints_to_keep: -1
 
-load_path: null
-# 1.52T tokens
-max_duration: 290000
+load_path: results/AIGCode-7B/step290000-unsharded
+reset_trainer_state: true
+reset_optimizer_state: true
+# 15.7B tokens
+max_duration: 3000
 global_train_batch_size: 1280
 device_train_microbatch_size: 2
 
@@ -203,25 +202,6 @@ data:
   persistent_workers: true
   timeout: 0
   memmap_dtype: uint16
-  data_dir_prefix: "/dataset/pretrain/npy/matrix"
+  data_dir_prefix: "/dataset/pretrain/npy"
   data_dir:
-    # after sample 720B token
-    - cc_en: 1.0
-    # after sample 330B token
-    - cc_zh: 1.0
-    # after sample 150B token
-    - code: 1.0
-    # after sample 100B token
-    - book: 1.0
-    # after sample 100B token
-    - paper: 1.0
-    # after sample 70B token
-    - instruction: 1.0
-    # after sample 20B token
-    - exam: 1.0
-    # after sample 10B token
-    - news: 1.0
-    # after sample 10B token
-    - wiki: 1.0
-    # after sample 10B token
-    - patent: 1.0
+    - sft: 1.0

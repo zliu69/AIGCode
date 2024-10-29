@@ -6,16 +6,15 @@ build-backend = "setuptools.build_meta"
 name = "ai2-aigcode"
 dynamic = ["version"]
 readme = "README.md"
-description = "Open Language Model (AIGCcode)"
+description = "Open Language Model (AIGCode)"
 authors = [
-    { name = "Allen Institute for Artificial Intelligence", email = "aigcode@allenai.org" }
+    { name = "AIGCode", email = "aigcode@aigcode.net" }
 ]
 requires-python = ">=3.8"
 license = { file = "LICENSE" }
 dependencies = [
     "numpy",
     "torch>=2.1,<2.3",
-    "ai2-aigcode-core==0.1.0",
     "omegaconf",
     "rich",
     "boto3",
@@ -55,8 +54,8 @@ all = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/allenai/AIGCcode"
-Repository = "https://github.com/allenai/AIGCcode"
+Homepage = "https://github.com/aigcode-net/AIGCode"
+Repository = "https://github.com/aigcode-net/AIGCode"
 
 [tool.setuptools]
 include-package-data = true
