@@ -27,7 +27,7 @@ The core models in the AIGCode family released so far are (all trained on the [m
 | Model | Training Tokens | Context Length | Training Config ☨ |
 |-------|-----------------|:--------------:|-----------------|
 | [AIGCode 7B](https://huggingface.co/zimo223/AIGCode-3B-7B-Base) | 1.5 Trillion | 4096 | [configs/official/AIGCode-7B.yaml](https://github.com/zliu69/AIGCode/blob/main/configs/official/AIGCode-7B.yaml) |
-| [AIGCode 7B Chat](https://huggingface.co/zimo223/AIGCode-3B-7B-chat-v0.1) | 1.5 Trillion(pretrain) + 15 Billion(anneal+aft)  | 4096 | [configs/official/AIGCode-7B.yaml](https://github.com/zliu69/AIGCode/blob/main/configs/official/AIGCode-7B.yaml) |
+| [AIGCode 7B Chat](https://huggingface.co/zimo223/AIGCode-3B-7B-chat-v0.1) | 1.5 Trillion(pretrain) + 15 Billion(anneal+aft)  | 4096 | [configs/official/AIGCode-7B-sft.yaml](https://github.com/zliu69/AIGCode/blob/main/configs/official/AIGCode-7B-sft.yaml) |
 
 
 ## Inference
