@@ -4,7 +4,7 @@ Version: 0.0.1
 Summary: Lightweight AIGCode
 Author-email: Zimo Liu <liuzimo@aigcode.net>
 License: Apache-2.0
-Project-URL: Homepage, https://github.com/zliu69/AIGCode
+Project-URL: Homepage, https://github.com/aigcode-net/AIGCode
 Classifier: Development Status :: 3 - Alpha
 Classifier: Typing :: Typed
 Requires-Python: >=3.8

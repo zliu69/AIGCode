@@ -5,7 +5,7 @@
 </div>
 
 AIGCode is a repository for training unbalanced MoE/PLE language models for coding task on open source data. 
-Adapt from https://github.com/allenai/OLMo.
+Adapt from https://github.com/allenai/OLMo, https://github.com/facebookresearch/xformers, https://github.com/microsoft/torchscale, and many others open sources in LLM. 
 
 ## Installation
 
@@ -14,7 +14,7 @@ First install [PyTorch](https://pytorch.org) according to the instructions speci
 To install from source (recommended for training/fine-tuning) run:
 
 ```bash
-git clone https://github.com/zliu69/AIGCode.git
+git clone https://github.com/aigcode-net/AIGCode.git
 cd AIGCode
 pip install -e .[all]
 ```
@@ -26,8 +26,8 @@ pip install -e .[all]
 The core models in the AIGCode family released so far are (all trained on the [m-a-p/Matrix dataset](https://huggingface.co/datasets/m-a-p/Matrix)) 1.5T/4.7T: 
 | Model | Training Tokens | Context Length | Training Config ☨ |
 |-------|-----------------|:--------------:|-----------------|
-| [AIGCode 7B](https://huggingface.co/zimo223/AIGCode-3B-7B-Base) | 1.5 Trillion | 4096 | [configs/official/AIGCode-7B.yaml](https://github.com/zliu69/AIGCode/blob/open_source/configs/official/AIGCode-7B.yaml) |
-| [AIGCode 7B Chat](https://huggingface.co/zimo223/AIGCode-3B-7B-chat-v0.1) | 1.5 Trillion(pretrain) + 15 Billion(anneal+aft)  | 4096 | [configs/official/AIGCode-7B-sft.yaml](https://github.com/zliu69/AIGCode/blob/open_source/configs/official/AIGCode-7B-sft.yaml) |
+| [AIGCode 7B](https://huggingface.co/aigcode/AIGCode-3B-7B-Base) | 1.5 Trillion | 4096 | [configs/official/AIGCode-7B.yaml](https://github.com/aigcode-net/AIGCode/blob/open_source/configs/official/AIGCode-7B.yaml) |
+| [AIGCode 7B Chat](https://huggingface.co/aigcode/AIGCode-3B-7B-chat-v0.1) | 1.5 Trillion(pretrain) + 15 Billion(anneal+sft)  | 4096 | [configs/official/AIGCode-7B-sft.yaml](https://github.com/aigcode-net/AIGCode/blob/open_source/configs/official/AIGCode-7B-sft.yaml) |
 
 
 ## Inference
@@ -50,7 +50,7 @@ Alternatively, with the Hugging Face pipeline abstraction:
 
 ```python
 from transformers import pipeline
-aigcode_pipe = pipeline("text-generation", model="allenai/AIGCode-1.7-7B-hf")
+aigcode_pipe = pipeline("text-generation", model="aigcode/AIGCode-1.7-7B-hf")
 print(aigcode_pipe("Language modeling is"))
 ```
 
@@ -58,7 +58,7 @@ print(aigcode_pipe("Language modeling is"))
 
 ### Training
 
-The configs used to train the official AIGCode models are provided in the [`configs/official/`](https://github.com/zliu69/AIGCode/blob/open_source/configs/official) directory.
+The configs used to train the official AIGCode models are provided in the [`configs/official/`](https://github.com/aigcode-net/AIGCode/blob/open_source/configs/official) directory.
 
 ```bash
 torchrun --nproc_per_node=8 scripts/train.py configs/official/AIGCode-1B.yaml

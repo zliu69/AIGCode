@@ -54,8 +54,8 @@ all = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/zliu69/AIGCode"
-Repository = "https://github.com/zliu69/AIGCode"
+Homepage = "https://github.com/aigcode-net/AIGCode"
+Repository = "https://github.com/aigcode-net/AIGCode"
 
 [tool.setuptools]
 include-package-data = true

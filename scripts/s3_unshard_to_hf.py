@@ -11,7 +11,7 @@ python scripts/s3_unshard_to_hf.py \
     --tmp_dir /net/nfs.cirrascale/allennlp/davidw/tmp/unshard
 
 NOTE: For this to work, you need to install the `AIGCode-core` repo as follows:
-- Clone https://github.com/zliu69/AIGCode-core
+- Clone https://github.com/aigcode-net/AIGCode-core
 - Run `pip install -e .[all]`
 """
 
